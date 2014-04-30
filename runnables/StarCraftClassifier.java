@@ -256,6 +256,9 @@ public class StarCraftClassifier {
 		ai.waitFor(min100);
 		ai.type(KeyEvent.VK_S);
 		ai.leftClick(getSupply(3));
+
+		//Classify
+		ai.classify();
 		
 		//BUILD FACTORY
 		ai.selectGroup(4);
@@ -311,7 +314,9 @@ public class StarCraftClassifier {
 			ai.sleep(0.5);
 			ai.leftClick(getSupply(i+1));
 		}
-		
+
+		//Classify
+		ai.classify();
 		
 		//GET ONE MORE REFINERY WORKERS	
 		ai.sleep(0.3);
@@ -368,6 +373,7 @@ public class StarCraftClassifier {
 		ai.waitFor(vesp200);
 		ai.waitFor(idleWorker);
 		ai.type(KeyEvent.VK_T);
+		long thorStart = System.currentTimeMillis();
 
 		//Classify
 		ai.classify();
@@ -379,49 +385,32 @@ public class StarCraftClassifier {
 			ai.type(KeyEvent.VK_S);
 		}
 					
+		
+		
 		//END GAME
 		for(int i = 0; i < 2; i++){
 			for(int wave = 0; wave < 2; wave++){
 
+				if(i == 0 && wave == 1){
+					while(System.currentTimeMillis() - thorStart < realToGameTime(60));
+				}
 				
 				//PREPARE ATTACK
+				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_A);
 				if(i == 0 && wave == 0){
 					ai.leftClick(RALLY);
+				} else if (i == 0){
+					ai.leftClick(RALLY2);
 				} else {
-					ai.leftClick(RALLY2);
+					ai.leftClick(ENEMY);
 				}
-				
-				if(i > 0){
-					//MORE SUPPLY
-					ai.selectGroup(7);
-					ai.selectGroup(7);
-					ai.sleep(0.3);
-					ai.selectGroup(4);
-					ai.type(KeyEvent.VK_B);
-					ai.waitFor(min100);
-					ai.type(KeyEvent.VK_S);
-					ai.sleep(0.3);
-					ai.shiftLeftClick(getSupply(wave + 5));
-	
-					//SUPPLY REINFORCE
-					ai.leftClick(getSupply(wave + 4));
-					ai.leftClick(getSupply(wave + 4));
-					ai.sleep(0.3);
-					ai.type(KeyEvent.VK_R);
-					ai.selectGroup(7);
-					ai.type(KeyEvent.VK_X);
-					ai.sleep(1.5);
-					ai.leftClick(getSupply(wave + 4));
-				}
-				//LOOK AT ACTION
-				if(i > 0 || wave == 2) {
-					ai.leftClick(RALLY2);
-					
-					//Classify
-					ai.classify();
-				}
+
+				ai.type(KeyEvent.VK_F2);
+				ai.type(KeyEvent.VK_F2);
+				//Classify
+				ai.classify();
 				
 				//BUILD THORS
 				ai.selectGroup(9);
@@ -430,8 +419,14 @@ public class StarCraftClassifier {
 				ai.type(KeyEvent.VK_T);
 				
 				//BUILD MARINES
-				ai.selectGroup(8);
 				for(int m = 0; m < 8; m++){
+
+					ai.type(KeyEvent.VK_F2);
+					ai.type(KeyEvent.VK_F2);
+					//Classify
+					ai.classify();
+					
+					ai.selectGroup(8);
 					ai.waitFor(min50);
 					ai.type(KeyEvent.VK_A);
 				}
@@ -439,26 +434,20 @@ public class StarCraftClassifier {
 			}
 			
 			//Watch
-			for(int j = 0; j < 60; j++){
+			for(int j = 0; j < 120; j++){
 				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_A);
 				ai.leftClick(ENEMY);
 				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_F2);
+				ai.leftClick(new Point(1160, 120));
 				if(j % 10 == 0){
 					//Classify
 					ai.classify();
 				}
-				ai.sleep(0.5);
+				ai.sleep(0.3);
 			}
-		}
-		
-		//ACCEPT SURRENDER
-		for(int i = 0; i < 6; i++){
-			ai.sleep(5);
-			ai.leftClick(new Point(1160, 120));
-		}
-		
+		}	
 		
 	}
 	

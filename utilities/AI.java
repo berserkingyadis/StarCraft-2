@@ -22,7 +22,7 @@ public class AI {
 	private final Rectangle screenSize;
 	private NetworkedMatlabCommunicator server;
 	private final static int GUI_Y = 525;
-	private static int serialNum = 3000;
+	private static int serialNum = 5000;
 
 	public AI() {
 		try {

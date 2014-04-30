@@ -56,20 +56,6 @@ public class StarCraft {
 		//GROUP 7 <- COMMANDCENTER
 		ai.assignToGroup(7);
 		
-		for(int i = 0; i < 3; i++){
-			//BUILD SCV
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_S);
-		}
-		//GROUP 1 - 6 <- BUILDER SCVs
-		for(int i = 1; i <= 6; i++){
-			ai.selectAll();
-			ai.sleep(0.3);
-			ai.leftClick(getArmyUnit(i));
-			ai.sleep(0.3);
-			ai.assignToGroup(i);
-		}
-		
 		//Determine which base we're at
 		//and setup accordingly
 		buildOnLeft = ai.isAtBottomBase();
@@ -95,6 +81,21 @@ public class StarCraft {
 			RALLY2 = new Point(100, 725);
 		}
 		
+		ai.selectGroup(7);
+		for(int i = 0; i < 3; i++){
+			//BUILD SCV
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_S);
+		}
+		//GROUP 1 - 6 <- BUILDER SCVs
+		for(int i = 1; i <= 6; i++){
+			ai.selectAll();
+			ai.sleep(0.3);
+			ai.leftClick(getArmyUnit(i));
+			ai.sleep(0.3);
+			ai.assignToGroup(i);
+		}
+		
 		//BUILD SUPPLY DEPOT
 		ai.selectGroup(1);
 		ai.waitFor(new Resource(Resource.MINERALS, 70));
@@ -116,26 +117,9 @@ public class StarCraft {
 		ai.waitFor(min150);
 		ai.type(KeyEvent.VK_B);
 		ai.leftClick(BARRACKS);
-
-		//BUILD TWO SCVs
-		ai.selectGroup(7);
-		for(int i = 0; i < 2; i++){
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_S);
-		}
-		
-		//GROUP 8 <- BARRACKS
-		ai.leftClick(BARRACKS);
-		ai.assignToGroup(8);
-		
-		//SCVs
-		ai.selectGroup(7);
-		for(int i = 0; i < 3; i++){
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_S);
-		}
 		
 		//Build Refinery
+		ai.debug("Build Refinery");
 		ai.sleep(1);
 		ai.selectGroup(3);
 		ai.waitFor(new Resource(Resource.MINERALS, 65));
@@ -147,8 +131,35 @@ public class StarCraft {
 		ai.sleep(1);
 		ai.shiftLeftClick(REFINERY);
 		
-					
+		//BUILD TWO SCVs
+		ai.debug("Two SCVs");
+		ai.selectGroup(7);
+		for(int i = 0; i < 2; i++){
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_S);
+		}
+		
+		//GROUP 8 <- BARRACKS
+		ai.leftClick(BARRACKS);
+		ai.assignToGroup(8);
+		
+		//SCVs
+		ai.debug("3 SCVs");
+		ai.selectGroup(7);
+		for(int i = 0; i < 3; i++){
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_S);
+		}
+
+		//Send workers to refinery
+		ai.debug("SCVs to Refinery");
+		ai.selectGroup(4);
+		ai.rightClick(REFINERY);
+		ai.selectGroup(5);
+		ai.rightClick(REFINERY);
+		
 		//Build barracks 2
+		ai.debug("Build Barracks 2");
 		ai.setMouse(BARRACKS2);
 		ai.selectGroup(1);
 		ai.shiftLeftClick(BARRACKS2);
@@ -157,7 +168,58 @@ public class StarCraft {
 		ai.type(KeyEvent.VK_B);
 		ai.leftClick(BARRACKS2);
 		
+		//BUILD REACTOR
+		ai.debug("Reactor on barracks 1");
+		ai.leftClick(BARRACKS);
+		ai.waitFor(min50);
+		ai.waitFor(vesp50);
+		while(ai.canClickCommand(4, 2));
+		ai.type(KeyEvent.VK_C);
+		ai.sleep(0.5);
+		ai.leftClick(BARRACKS);
+		
+		
+		
+		//ORBITAL COMMAND
+		ai.debug("orbital command");
+		ai.selectGroup(7);
+		ai.waitFor(min150);
+		while(ai.canClickCommand(4, 2));
+		ai.type(KeyEvent.VK_B);
+
+		//Group 4 <- both barracks
+		ai.selectGroup(8);
+		ai.shiftLeftClick(BARRACKS2);
+		ai.assignToGroup(8);
+		ai.rightClick(RALLY);
+		
+		//BUILD REACTOR 2
+		ai.debug("reactor 2");
+		ai.leftClick(BARRACKS2);
+		ai.waitFor(min50);
+		ai.waitFor(vesp50);
+		while(ai.canClickCommand(4, 2));
+		ai.type(KeyEvent.VK_C);
+		ai.sleep(0.5);
+		ai.leftClick(BARRACKS2);
+
+		//Send first scv to refinery
+		ai.debug("SCV on Barracks 2 to refinery 2");
+		ai.selectGroup(1);
+		ai.shiftRightClick(REFINERY2);
+		
+		//BUILD FACTORY
+		ai.debug("Factory");
+		ai.selectGroup(6);
+		ai.waitFor(min150);
+		ai.waitFor(vesp100);
+		ai.type(KeyEvent.VK_V);
+		ai.type(KeyEvent.VK_F);
+		ai.sleep(0.3);
+		ai.leftClick(FACTORY);
+		
 		//Build supply 2
+		ai.debug("Supply Depot 2");
 		ai.selectGroup(2);
 		ai.waitFor(new Resource(Resource.MINERALS, 65));
 		ai.rightClick(getSupply(2));
@@ -165,96 +227,24 @@ public class StarCraft {
 		ai.waitFor(min100);
 		ai.type(KeyEvent.VK_S);
 		ai.leftClick(getSupply(2));
+
+		//SCVs
+		ai.debug("3 scvs");
+		ai.selectGroup(7);
+		for(int i = 0; i < 3; i++){
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_S);
+		}
 		
 		//SEND SCV 2 TO REFINERY
-		ai.shiftRightClick(REFINERY);
-		
-		//ORBITAL COMMAND
-		ai.selectGroup(7);
-		ai.waitFor(min150);
-		ai.type(KeyEvent.VK_B);
-					
-		//Group 4 <- both barracks
-		ai.selectGroup(8);
-		ai.shiftLeftClick(BARRACKS2);
-		ai.assignToGroup(8);
-		ai.rightClick(RALLY);
-		
-		//BUILD REACTOR
-		ai.leftClick(BARRACKS);
-		ai.waitFor(min50);
-		ai.waitFor(vesp50);
-		ai.type(KeyEvent.VK_C);
-		ai.sleep(0.5);
-		ai.leftClick(BARRACKS);
-		
-		//Send first scv to refinery
-		ai.selectGroup(1);
-		ai.shiftRightClick(REFINERY);
-		
-		//BUILD REACTOR 2
-		ai.leftClick(BARRACKS2);
-		ai.waitFor(min50);
-		ai.waitFor(vesp50);
-		ai.type(KeyEvent.VK_C);
-		ai.sleep(0.5);
-		ai.leftClick(BARRACKS2);
-		
-		//Build marines
-		ai.sleep(realToGameTime(20));
-		ai.selectGroup(8);
-		for(int i = 0; i < 8; i++){
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_A);
-		}
-		
-		ai.sleep(realToGameTime(24));
-		for(int i = 0; i < 10; i++){
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_A);
-		}
-			
-		//BUILD SUPPLY 3
-		ai.selectGroup(4);
-		ai.waitFor(new Resource(Resource.MINERALS, 70));
-		ai.rightClick(getSupply(3));
-		ai.type(KeyEvent.VK_B);
-		ai.waitFor(min100);
-		ai.type(KeyEvent.VK_S);
-		ai.leftClick(getSupply(3));
-		
-		//BUILD FACTORY
-		ai.selectGroup(4);
-		ai.shiftRightClick(FACTORY);
-		ai.type(KeyEvent.VK_V);
-		ai.waitFor(min150);
-		ai.waitFor(vesp100);
-		ai.waitFor(idleWorker);
-		ai.type(KeyEvent.VK_F);
-		ai.sleep(1);
-		ai.shiftLeftClick(FACTORY);
-		ai.sleep(1);
-		ai.leftClick(FACTORY);
-		
-		//BUILD REFINERY 2
-		ai.selectGroup(5);
-		ai.waitFor(new Resource(Resource.MINERALS, 65));
-		ai.rightClick(REFINERY2);
+		ai.debug("Queue up refinery 2");
+		ai.selectGroup(2);
 		ai.type(KeyEvent.VK_B);
 		ai.waitFor(new Resource(Resource.MINERALS, 75));
 		ai.type(KeyEvent.VK_R);
+		ai.setMouse(REFINERY2);
 		ai.sleep(0.3);
-		ai.leftClick(REFINERY2);
-		
-		//BUILD SUPPLY 4
-		ai.selectGroup(6);
-		ai.waitFor(new Resource(Resource.MINERALS, 70));
-		ai.rightClick(getSupply(4));
-		ai.type(KeyEvent.VK_B);
-		ai.waitFor(min100);
-		ai.type(KeyEvent.VK_S);
-		ai.sleep(0.3);
-		ai.leftClick(getSupply(4));
+		ai.shiftLeftClick(REFINERY2);
 		
 		//LOWER SUPPLY
 		ai.sleep(0.3);
@@ -262,34 +252,23 @@ public class StarCraft {
 		ai.leftClick(getSupply(1));
 		ai.sleep(0.3);
 		ai.type(KeyEvent.VK_R);
-		
-		//Call down supplies
-		ai.sleep(1);
-		ai.selectGroup(7);
-		for(int i = 0; i < 2; i++){
-			ai.type(KeyEvent.VK_X);
-			ai.sleep(0.5);
-			ai.leftClick(getSupply(i+1));
-		}
-		
-		
-		//GET ONE MORE REFINERY WORKERS	
-		ai.sleep(0.3);
-		ai.selectGroup(6);
-		ai.shiftRightClick(REFINERY2);
-		
+
 		//BUILD ARMORY
-		ai.selectGroup(4);
+		ai.debug("armory");
+		ai.selectGroup(6);
 		ai.shiftRightClick(ARMORY);
-		ai.type(KeyEvent.VK_V);
+		ai.leftClick(FACTORY);
 		ai.waitFor(min150);
 		ai.waitFor(vesp100);
-		ai.waitFor(idleWorker);
+		while(ai.canClickCommand(4, 2));
+		ai.selectGroup(6);
+		ai.type(KeyEvent.VK_V);
 		ai.type(KeyEvent.VK_A);
 		ai.sleep(0.3);
 		ai.leftClick(ARMORY);
 		
 		//BUILD TECHLAB ON FACTORY
+		ai.debug("techlab");
 		ai.sleep(1);
 		ai.leftClick(FACTORY);
 		ai.assignToGroup(9);
@@ -300,71 +279,100 @@ public class StarCraft {
 		ai.sleep(0.3);
 		ai.leftClick(FACTORY);
 		
-		//SCVs
+		//Build marines
+		ai.debug("4 marines");
+		ai.leftClick(BARRACKS);
+		while(ai.canClickCommand(4, 2));
+		for(int i = 0; i < 4; i++){
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_A);
+		}
+		ai.leftClick(BARRACKS2);
+		while(ai.canClickCommand(4, 2));
+		ai.selectGroup(8);
+		for(int i = 0; i < 6; i++){
+			ai.waitFor(min50);
+			ai.type(KeyEvent.VK_A);
+		}
+			
+		//BUILD SUPPLY 3
+		ai.debug("Supply 3");
+		ai.selectGroup(6);
+		ai.waitFor(new Resource(Resource.MINERALS, 70));
+		ai.shiftRightClick(getSupply(3));
+		ai.type(KeyEvent.VK_B);
+		ai.waitFor(min100);
+		ai.type(KeyEvent.VK_S);
+		ai.shiftLeftClick(getSupply(3));
+		
+		//Call down supplies
+		ai.debug("call down");
+		ai.sleep(1);
 		ai.selectGroup(7);
-		for(int i = 0; i < 5; i++){
+		for(int i = 0; i < 2; i++){
+			ai.type(KeyEvent.VK_X);
+			ai.sleep(0.5);
+			ai.leftClick(getSupply(i+1));
+		}
+		//SCVs
+		ai.debug("4 SCVs");
+		ai.selectGroup(7);
+		for(int i = 0; i < 4; i++){
 			ai.waitFor(min50);
 			ai.type(KeyEvent.VK_S);
 		}
+				
+		//BUILD SUPPLY 4
+		ai.debug("supply 4");
+		ai.selectGroup(6);
+		ai.waitFor(new Resource(Resource.MINERALS, 70));
+		ai.shiftRightClick(getSupply(4));
+		ai.type(KeyEvent.VK_B);
+		ai.waitFor(min100);
+		ai.type(KeyEvent.VK_S);
+		ai.sleep(0.3);
+		ai.shiftLeftClick(getSupply(4));
+		ai.shiftRightClick(REFINERY2);
 		
 		//Call down supplies
+		ai.debug("call down");
 		ai.selectGroup(7);
 		ai.type(KeyEvent.VK_X);
 		ai.sleep(0.3);
 		ai.leftClick(getSupply(3));
 		
 		//BUILD THORS
+		ai.debug("thor");
 		ai.selectGroup(9);
 		ai.waitFor(min300);
 		ai.waitFor(vesp200);
-		ai.waitFor(idleWorker);
+		while(!ai.canClickCommand(4, 0));
 		ai.type(KeyEvent.VK_T);
-				
-		//SCVs
-		ai.selectGroup(7);
-		for(int i = 0; i < 5; i++){
-			ai.waitFor(min50);
-			ai.type(KeyEvent.VK_S);
-		}
-					
+		long thorStart = System.currentTimeMillis();
+	
 		//END GAME
+		ai.debug("END GAME");
 		for(int i = 0; i < 2; i++){
 			for(int wave = 0; wave < 2; wave++){
 
+				if(i == 0 && wave == 1){
+					while(System.currentTimeMillis() - thorStart < realToGameTime(60000));
+				}
 				
 				//PREPARE ATTACK
+				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_F2);
 				ai.type(KeyEvent.VK_A);
 				if(i == 0 && wave == 0){
 					ai.leftClick(RALLY);
-				} else {
+				} else if (i == 0){
 					ai.leftClick(RALLY2);
+				} else {
+					ai.leftClick(ENEMY);
 				}
-				
-				if(i > 0){
-					//MORE SUPPLY
-					ai.selectGroup(7);
-					ai.selectGroup(7);
-					ai.sleep(0.3);
-					ai.selectGroup(4);
-					ai.type(KeyEvent.VK_B);
-					ai.waitFor(min100);
-					ai.type(KeyEvent.VK_S);
-					ai.sleep(0.3);
-					ai.shiftLeftClick(getSupply(wave + 5));
-	
-					//SUPPLY REINFORCE
-					ai.leftClick(getSupply(wave + 4));
-					ai.leftClick(getSupply(wave + 4));
-					ai.sleep(0.3);
-					ai.type(KeyEvent.VK_R);
-					ai.selectGroup(7);
-					ai.type(KeyEvent.VK_X);
-					ai.sleep(1.5);
-					ai.leftClick(getSupply(wave + 4));
-				}
-				//LOOK AT ACTION
-				if(i > 0 || wave == 2) ai.leftClick(RALLY2);
+
+				ai.type(KeyEvent.VK_F2);
+				ai.type(KeyEvent.VK_F2);
 				
 				//BUILD THORS
 				ai.selectGroup(9);
@@ -373,8 +381,11 @@ public class StarCraft {
 				ai.type(KeyEvent.VK_T);
 				
 				//BUILD MARINES
-				ai.selectGroup(8);
 				for(int m = 0; m < 8; m++){
+
+					ai.type(KeyEvent.VK_F2);
+					ai.type(KeyEvent.VK_F2);
+					ai.selectGroup(8);
 					ai.waitFor(min50);
 					ai.type(KeyEvent.VK_A);
 				}
