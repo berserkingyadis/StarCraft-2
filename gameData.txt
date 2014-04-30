@@ -1,0 +1,2 @@
+CommandCenter 500 500 200 200
+Mineral 400 600 100 100
