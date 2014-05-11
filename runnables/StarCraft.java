@@ -352,46 +352,41 @@ public class StarCraft {
 	
 		//END GAME
 		ai.debug("END GAME");
-		for(int i = 0; i < 2; i++){
-			for(int wave = 0; wave < 2; wave++){
+		for(int wave = 0; wave < 2; wave++){
 
-				if(i == 0 && wave == 1){
-					while(System.currentTimeMillis() - thorStart < realToGameTime(60000));
-				}
-				
-				//PREPARE ATTACK
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_A);
-				if(i == 0 && wave == 0){
-					ai.leftClick(RALLY);
-				} else if (i == 0){
-					ai.leftClick(RALLY2);
-				} else {
-					ai.leftClick(ENEMY);
-				}
-
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_F2);
-				
-				//BUILD THORS
-				ai.selectGroup(9);
-				ai.waitFor(min300);
-				ai.waitFor(vesp200);
-				ai.type(KeyEvent.VK_T);
-				
-				//BUILD MARINES
-				for(int m = 0; m < 8; m++){
-
-					ai.type(KeyEvent.VK_F2);
-					ai.type(KeyEvent.VK_F2);
-					ai.selectGroup(8);
-					ai.waitFor(min50);
-					ai.type(KeyEvent.VK_A);
-				}
-
+			if(wave == 1){
+				while(System.currentTimeMillis() - thorStart < realToGameTime(60000));
 			}
-			
+
+			//PREPARE ATTACK
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_A);
+			if(wave == 0){
+				ai.leftClick(RALLY);
+			} else {
+				ai.leftClick(ENEMY);
+			}
+
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_F2);
+
+			//BUILD THORS
+			ai.selectGroup(9);
+			ai.waitFor(min300);
+			ai.waitFor(vesp200);
+			ai.type(KeyEvent.VK_T);
+
+			//BUILD MARINES
+			for(int m = 0; m < 8; m++){
+
+				ai.type(KeyEvent.VK_F2);
+				ai.type(KeyEvent.VK_F2);
+				ai.selectGroup(8);
+				ai.waitFor(min50);
+				ai.type(KeyEvent.VK_A);
+			}
+
 			//Watch
 			for(int j = 0; j < 60; j++){
 				ai.type(KeyEvent.VK_F2);

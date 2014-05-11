@@ -16,8 +16,4 @@ public class CommandCenter extends GameObject {
 		this.height = height;
 		this.isStationary = true;
 	}
-
-	public boolean isType(String type) {
-		return type.equals("CommandCenter");
-	}
 }

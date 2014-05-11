@@ -2,6 +2,7 @@ package utilities;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,11 @@ public class Util {
 
 	private static final String GUI_ICONS_DIR = "GUI_Images/";
 	private static final int DIGIT_WIDTH = 9;
+	private static final Color RESOURCES = new Color(126, 191, 241);
+	private static final Color SELF = new Color(0,187,0);
+	private static final Color SELF2 = new Color(0,255,0);
+	private static final Color ENEMY = new Color(255,0,0);
+	public static final Rectangle MINIMAP = new Rectangle(20, 575, 185, 180);
 	private static final int[][][] DIGITS = new int[][][] {
 			// ZERO
 			{ { 130, 255, 255, 255, 255, 255, 130 },
@@ -256,6 +262,243 @@ public class Util {
 		p.x += 49*x;
 		p.y += 49*y;
 		return p;
+	}
+
+	public static Rectangle[] findBestClusters(BufferedImage screenshot) {
+		//Get all points
+		Point[] points = findAllPoints(screenshot);
+		Rectangle[] clusters = null;
+		double bestScore = Integer.MAX_VALUE;
+		for(int k = 4; k <= 20; k++){
+			//Find clusters for current K
+			Rectangle[] newClusters = runKMeans(points, k);
+			
+			//Score current K
+			double score = scoreClusters(newClusters);
+			
+			//Compare 
+			if(score < bestScore){
+				bestScore = score;
+				clusters = newClusters;
+			}
+		} 
+		return clusters;
+	}
+	
+	private static double scoreClusters(Rectangle[] clusters) {
+		int minArea = Integer.MAX_VALUE;
+		int maxArea = 0;
+		for(int i = 0; i < clusters.length; i++){
+			int area = clusters[i].width * clusters[i].height;
+			if(area < minArea){ minArea = area; }
+			if(area > maxArea){ maxArea = area; }
+		}
+		return maxArea - minArea;
+	}
+	
+	public static int findOwnBase(Rectangle[] clusters, BufferedImage screen){
+		int result = findColorBase(clusters, screen, SELF);
+		if(result < 0){
+			result = findColorBase(clusters, screen, SELF2);
+		}
+		return result;
+	}
+	
+	public static int findEnemyBase(Rectangle[] clusters, BufferedImage screen){
+		return findColorBase(clusters, screen, ENEMY);
+	}
+
+	private static int findColorBase(Rectangle[] clusters, BufferedImage screen, Color c){
+		for(int i = 0; i < clusters.length; i++){
+			Rectangle r = clusters[i];
+			for(int y = r.y; y < r.y + r.height; y++){
+				for(int x = r.x; x < r.x + r.width; x++){
+					if(screen.getRGB(x,y) == c.getRGB()){
+						return i;
+					}
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	public static Point[] findAllPoints(BufferedImage bi){
+		ArrayList<Point> points = new ArrayList<Point>();
+		for(int y = MINIMAP.y; y < MINIMAP.y + MINIMAP.height; y++){
+			for(int x = MINIMAP.x; x < MINIMAP.x + MINIMAP.width; x++){
+				if(bi.getRGB(x, y) == RESOURCES.getRGB()){
+					points.add(new Point(x,y));
+				}
+			}
+		}
+		
+		return points.toArray(new Point[]{});
+	}
+	
+	public static Rectangle[] runKMeans(Point[] points, int k){
+		Rectangle[] clusters = new Rectangle[k];
+		Point[] clusterCenters = new Point[k];
+		
+		//Initialize cluster centers
+		for(int i = 0; i < k; i++){
+			clusterCenters[i] = new Point((int)(Math.random()*(MINIMAP.width) + MINIMAP.x), 
+										(int)(Math.random()*MINIMAP.height) + MINIMAP.y);
+		}
+		
+		//Give each cluster one point
+		ArrayList<ArrayList<Point>> assigned = new ArrayList<ArrayList<Point>>();
+		for(int i = 0; i < k; i++){
+			assigned.add(new ArrayList<Point>());
+			double bestDist = Double.MAX_VALUE;
+			int bestIndex = 0;
+			for(int j = 0; j < points.length; j++){
+				if(points[j] != null){
+					double dist = dist(clusterCenters[i], points[j]);
+					if(dist < bestDist){
+						//Make sure it's not already used
+						boolean ok = true;
+						int prev = 0;
+						while(ok && prev < i){
+							ok = !assigned.get(prev).get(0).equals(points[j]);
+							prev++;
+						}
+
+						if(ok){
+							bestDist = dist;
+							bestIndex = j;
+						}
+					}
+				}
+			}
+			
+			assigned.get(i).add(points[bestIndex]);
+			//temporarily remove
+			points[bestIndex] = null;
+		}
+		
+		//Assign the rest of the points
+		for(int i = 0; i < points.length; i++){
+			if(points[i] != null){
+				double bestDist = Double.MAX_VALUE;
+				int bestIndex = 0;
+				for(int j = 0; j < clusterCenters.length; j++){
+					double dist = dist(points[i], clusterCenters[j]);
+					if(dist < bestDist){
+						bestDist = dist;
+						bestIndex = j;
+					}
+				}
+				
+				assigned.get(bestIndex).add(points[i]);
+			}
+		}
+		
+		//replace
+		int nullIndex = -1;
+		int replaced = 0;
+		while(replaced < k){
+			if(points[++nullIndex] == null){
+				points[nullIndex] = assigned.get(replaced++).get(0);
+			}
+		}
+			
+		
+		boolean changedGroup = true;
+		while(changedGroup){
+			changedGroup = false;
+			
+			//update centers
+			for(int i = 0; i < clusters.length; i++){
+				double x = 0;
+				double y = 0;
+				for(int j = 0; j < assigned.get(i).size(); j++){
+					x += assigned.get(i).get(j).getX();
+					y += assigned.get(i).get(j).getY();
+				}
+				x /= assigned.get(i).size();
+				y /= assigned.get(i).size();
+				
+				clusterCenters[i] = new Point((int)x,(int)y);
+			}
+			
+			// for each point in assigned, check if it should
+			// change groups
+			for(int i = 0; i < assigned.size(); i++){
+				for(int j = 0; j < assigned.get(i).size(); j++){
+					Point p = assigned.get(i).get(j);
+					double bestDist = Double.MAX_VALUE;
+					int bestIndex = 0;
+					for(int center = 0; center < clusterCenters.length; center++){
+						double dist = dist(clusterCenters[center], p);
+						if(dist < bestDist){
+							bestDist = dist;
+							bestIndex = center;
+						}
+					}
+					
+					//if it should be in a new list
+					if(bestIndex != i){
+						changedGroup = true;
+						assigned.get(i).remove(j--);
+						assigned.get(bestIndex).add(p);
+					}
+				}
+			}
+		}
+		
+		//Remove unused clusters
+		for(int i = 0; i < assigned.size(); i++){
+			if(assigned.get(i).size() == 0){
+				assigned.remove(i--);
+			}
+		}
+		
+		// Calculate regions from clusters
+		clusters = new Rectangle[assigned.size()];
+		for(int i = 0; i < clusters.length; i++){
+			int x = Integer.MAX_VALUE;
+			int y = Integer.MAX_VALUE;
+			int right = 0;
+			int bottom = 0;
+			for(int j = 0; j < assigned.get(i).size(); j++){
+				Point p = assigned.get(i).get(j);
+				if(p.x < x){x = p.x;}
+				if(p.y < y){y = p.y;}
+				if(p.x > right){right = p.x;}
+				if(p.y > bottom){bottom = p.y;}
+			}
+			clusters[i] = new Rectangle(x,y,right-x, bottom-y);
+		}
+		sort(clusters);
+		return clusters;
+	}
+	
+	//BUBBLE SORT!!!
+	public static void sort(Rectangle[] clusters){
+		for(int i = 0; i < clusters.length; i++){
+			for(int j = i + 1; j < clusters.length; j++){
+				if(outOfOrder(clusters[i], clusters[j])){
+					Rectangle temp = clusters[i];
+					clusters[i] = clusters[j];
+					clusters[j] = temp;
+				}
+			}
+		}
+	}
+	
+	public static boolean outOfOrder(Rectangle r1, Rectangle r2){
+		if(r1.y+r1.height < r2.y){
+			return false;
+		} else if(r2.y + r2.height < r1.y){
+			return true;
+		} else {
+			return r1.x > r2.x;
+		}
+	}
+	
+	public static double dist(Point p1, Point p2){
+		return Math.sqrt((p1.x - p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y));
 	}
 
 }

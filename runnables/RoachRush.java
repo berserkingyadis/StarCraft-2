@@ -6,10 +6,9 @@ import java.awt.image.BufferedImage;
 import utilities.AI;
 import utilities.GameObject;
 import utilities.Resource;
-import buildings.Hatchery;
 
 
-public class SpeedlingRush {
+public class RoachRush {
 	
 	
 	private static final double /*SLOWER = 1.66,
@@ -22,8 +21,7 @@ public class SpeedlingRush {
 	private static boolean buildOnLeft = true;
 	private static int width, height;
 	private static final int TILE_X = 40, TILE_Y = 33;
-	public static Point SPAWNINGPOOL, HATCHERY2, EXTRACTOR,
-						EXTRACTOR2, RALLY, RALLY2, BASE,
+	public static Point SPAWNINGPOOL, ROACHWARREN, EXTRACTOR, EXTRACTOR2, RALLY, RALLY2, BASE,
 						MINERAL;
 	public static Point[] BASES = new Point[]{
 		new Point(150, 740),
@@ -39,9 +37,11 @@ public class SpeedlingRush {
 	//Commonly used variables
 	private static Resource min25 = new Resource(Resource.MINERALS, 25),
 							min50 = new Resource(Resource.MINERALS, 50),
+							min75 = new Resource(Resource.MINERALS, 75),
 							min100 = new Resource(Resource.MINERALS, 100),
 							min150 = new Resource(Resource.MINERALS, 150),
 							min200 = new Resource(Resource.MINERALS, 200),
+							vesp25 = new Resource(Resource.VESPENE, 25),
 							vesp100 = new Resource(Resource.VESPENE, 100);
 	
 	
@@ -57,6 +57,7 @@ public class SpeedlingRush {
 		while(true){
 			//Wait for game to start
 			ai.waitFor(min50);
+			long gameStart = System.currentTimeMillis();
 	
 			//GROUP 1 <- hatchery
 			ai.type(KeyEvent.VK_BACK_SPACE);
@@ -74,7 +75,7 @@ public class SpeedlingRush {
 			
 			
 			//5 drones
-			for(int i = 0; i < 5; i++){
+			for(int i = 0; i < 4; i++){
 				makeDrone(ai);
 			}
 			//Determine which base we're at
@@ -84,7 +85,7 @@ public class SpeedlingRush {
 				SPAWNINGPOOL = new Point(1065, 220);
 				EXTRACTOR = new Point(width/2 + 100, 100);
 				EXTRACTOR2 = new Point(width/2 + 100, 575);
-				HATCHERY2 = new Point(460, 320);
+				ROACHWARREN = new Point(460, 320);
 				RALLY = new Point(118, 716);
 				RALLY2 = new Point(130, 610);
 				BASE = new Point(149, 737);
@@ -93,7 +94,7 @@ public class SpeedlingRush {
 				SPAWNINGPOOL = new Point(270, 400);
 				EXTRACTOR = new Point(width/2 - 50, 100);
 				EXTRACTOR2 = new Point(width/2 - 50, 575);
-				HATCHERY2 = new Point(900, 320);
+				ROACHWARREN = new Point(900, 320);
 				RALLY = new Point(105, 615);
 				RALLY2 = new Point(100, 725);
 				BASE = new Point(73, 595);
@@ -101,75 +102,59 @@ public class SpeedlingRush {
 			}
 			
 			//BUILD Extractor
+			while(System.currentTimeMillis() - gameStart < realToGameTime(105000));
 			buildExtractor(ai, 1);
 			long extractorStart = System.currentTimeMillis();
-			
-			//BUILD DRONE
-			makeDrone(ai);
-			
+
 			//SPAWNING POOL
 			buildSpawningPool(ai);
 			
-			//BUILD DRONE
-			makeDrone(ai);
+			//BUILD 3 DRONES
+			for(int i = 0; i < 3; i++){
+				makeDrone(ai);
+			}
 			
 			//Wait for extractor to finish
-			while(System.currentTimeMillis() - extractorStart < realToGameTime(28000));
+			while(System.currentTimeMillis() - extractorStart < realToGameTime(30000));
 			
 			//Send 3 drones to extractor
 			for(int i = 1; i <= 3; i++){
 				ai.selectAll();
 				ai.sleep(0.1);
 				ai.leftClick(getArmyUnit(i + 2));
-				ai.assignToGroup(i + 2);
 				ai.rightClick(EXTRACTOR);
 			}
 			
-			//BUILD Hatchery
+			//DRONE
+			makeDrone(ai);
+			
+			//BUILD QUEEN
+			ai.leftClick(SPAWNINGPOOL);
+			ai.sleep(0.3);
+			while(!ai.canClickCommand(0, 0));
+			ai.selectGroup(1);
+			ai.waitFor(min150);
+			ai.type(KeyEvent.VK_Q);
+			ai.rightClick(RALLY);
+			ai.sleep(0.1);
+			
+			//BUILD ROACH WARREN
 			ai.selectAll();
 			ai.sleep(0.1);
 			ai.leftClick(getArmyUnit(6));
 			ai.type(KeyEvent.VK_B);
-			ai.waitFor(new Resource(Resource.MINERALS, 270));
-			ai.rightClick(HATCHERY2);
-			ai.waitFor(new Resource(Resource.MINERALS, 300));
-			ai.type(KeyEvent.VK_H);
-			ai.leftClick(HATCHERY2);		
-			
-			//pull workers off gas
-			ai.waitFor(vesp100);
-			for(int times = 0; times < 15; times++){
-				for(int i = 1; i <= 3; i++){
-					ai.selectGroup(i + 2);
-					ai.rightClick(MINERAL);
-				}
-				ai.sleep(0.1);
-			}
-			
-			//BUILD QUEEN
-			ai.leftClick(SPAWNINGPOOL);
+			ai.waitFor(new Resource(Resource.MINERALS, 125));
+			ai.rightClick(ROACHWARREN);
+			ai.waitFor(new Resource(Resource.MINERALS, 150));
+			ai.type(KeyEvent.VK_R);
+			ai.waitFor(new Resource(Resource.IDLEWORKERS, 1));
 			ai.sleep(0.1);
-			while(!ai.canClickCommand(0, 0));
-			ai.selectGroup(1);
-			ai.rightClick(RALLY);
-			ai.waitFor(min150);
-			ai.type(KeyEvent.VK_Q);
-			ai.sleep(0.1);
-			
-			//RESEARCH BOOST
-			ai.leftClick(SPAWNINGPOOL);
-			ai.waitFor(vesp100);
-			ai.waitFor(min100);
-			ai.type(KeyEvent.VK_M);
-			
-			//make zergling
-			makeZergling(ai);
-	
+			ai.leftClick(ROACHWARREN);		
+			long roachWarrenDown = System.currentTimeMillis();
 			//make overlord
-			makeOverlord(ai);
-			
-			//make zergling
-			makeZergling(ai);
+			for(int i = 0; i < 2; i++){
+				makeOverlord(ai);
+			}
 			
 			//Group 2 <- Queen
 			ai.selectGroup(1);
@@ -183,22 +168,32 @@ public class SpeedlingRush {
 			//Inject
 			tryToInject(ai);
 			
-			//Group 1 <- both hatches
-			ai.selectGroup(1);
-			ai.shiftLeftClick(HATCHERY2);
-			ai.assignToGroup(1);
-			ai.rightClick(RALLY);
-			
-			//make zerglings
-			for(int i = 0; i < 12; i++){
-//				ai.debug("zergling " + i);
-				makeZergling(ai);
-//				ai.debug("try inject");
-//				tryToInject(ai);
+			//make roaches
+			long roachStart = 0;
+			while(System.currentTimeMillis() - roachWarrenDown < realToGameTime(55000));
+			for(int i = 0; i < 9; i++){
+				makeRoach(ai);
+				ai.clearScreenshot();
+				roachStart = System.currentTimeMillis();
+				tryToInject(ai);
 			}
 			
-			ai.sleep(realToGameTime(24));
-			ai.selectGroup(1);
+			//Overlord?
+			makeOverlord(ai);
+			
+			//Wait for last roach to finish
+			while(System.currentTimeMillis() - roachStart < realToGameTime(27000));
+			
+			//Attack
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_A);
+			for(int i = 0; i < BASES.length; i++){
+				if(buildOnLeft){
+					ai.shiftLeftClick(BASES[BASES.length - i - 1]);
+				} else {
+					ai.shiftLeftClick(BASES[i]);
+				}
+			}
 			
 			while(ai.getResourceAmount(Resource.MAXSUPPLY) > 0){
 				//Watch
@@ -217,14 +212,10 @@ public class SpeedlingRush {
 				
 				//Inject
 				if(tryToInject(ai)){
-					for(int i = 0; i < 8; i++){
-						//Make overlord if needed
-						makeOverlordIfNeeded(ai);
-						ai.type(KeyEvent.VK_F2);
-						ai.type(KeyEvent.VK_F2);
-						
+					for(int i = 0; i < 6; i++){
 						//Reinforce
-						tryToMakeZergling(ai);
+						makeOverlordIfNeeded(ai);
+						tryToMakeRoach(ai);
 						ai.type(KeyEvent.VK_F2);
 						ai.type(KeyEvent.VK_F2);
 					}
@@ -241,10 +232,10 @@ public class SpeedlingRush {
 			ai.sleep(2);
 			ai.leftClick(new Point(680, 475));
 			//Play again
-			ai.sleep(15);
+			ai.sleep(20);
 			ai.leftClick(new Point(310, 635));
 			//Add ai
-			ai.sleep(15);
+			ai.sleep(20);
 			ai.leftClick(new Point(925, 95));
 			//Start Game
 			ai.sleep(5);
@@ -292,18 +283,25 @@ public class SpeedlingRush {
 		}
 	}
 	
+	private static void tryToMakeRoach(AI ai){
+		ai.selectGroup(1);
+		ai.sleep(0.3);
+		if(ai.getResourceAmount(Resource.MINERALS) >= 75 &&
+				ai.getResourceAmount(Resource.VESPENE) >= 25 &&
+				GameObject.hasLarva(ai.screenShot()) && 
+				ai.getResourceAmount(Resource.CURSUPPLY) < 
+				ai.getResourceAmount(Resource.MAXSUPPLY) - 1){
+			ai.type(KeyEvent.VK_S);
+			ai.type(KeyEvent.VK_R);
+		}
+	}
+	
 	private static void makeDrone(AI ai){
 		ai.selectGroup(1);
-		ai.sleep(0.1);
-		BufferedImage bi = ai.screenShot();
-		ai.sleep(0.3);
-		while(!GameObject.hasLarva(bi)){
-			bi = ai.screenShot();
-			ai.sleep(0.3);
-		}
-		ai.waitFor(min50);
 		while(ai.getResourceAmount(Resource.CURSUPPLY) == 
 				ai.getResourceAmount(Resource.MAXSUPPLY));
+		ai.waitFor(min50);
+		while(!GameObject.hasLarva(ai.screenShot()));
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_D);
 	}
@@ -322,6 +320,18 @@ public class SpeedlingRush {
 		}
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_Z);
+	}
+	
+	private static void makeRoach(AI ai){
+		
+		ai.selectGroup(1);
+		while(ai.getResourceAmount(Resource.CURSUPPLY) >= 
+				ai.getResourceAmount(Resource.MAXSUPPLY) - 1);
+		ai.waitFor(min75);
+		ai.waitFor(vesp25);
+		while(!GameObject.hasLarva(ai.screenShot()));
+		ai.type(KeyEvent.VK_S);
+		ai.type(KeyEvent.VK_R);
 	}
 	
 	private static void makeOverlord(AI ai){
@@ -349,7 +359,6 @@ public class SpeedlingRush {
 	
 	private static void buildExtractor(AI ai, int num){
 		ai.selectAll();
-		ai.waitFor(new Resource(Resource.MINERALS, 15));
 		ai.sleep(0.1);
 		ai.leftClick(getArmyUnit(10));
 		if(num == 1){ai.rightClick(EXTRACTOR);}
@@ -357,7 +366,8 @@ public class SpeedlingRush {
 		ai.type(KeyEvent.VK_B);
 		ai.waitFor(min25);
 		ai.type(KeyEvent.VK_E);
-		ai.sleep(0.1);if(num == 1){ai.leftClick(EXTRACTOR);}
+		ai.sleep(0.1);
+		if(num == 1){ai.leftClick(EXTRACTOR);}
 		else {ai.leftClick(EXTRACTOR2);}
 	}
 	

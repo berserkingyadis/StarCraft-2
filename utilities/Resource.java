@@ -17,4 +17,24 @@ public class Resource {
 	public int getAmount(){
 		return amount;
 	}
+	
+	public static Resource mineral(int amount){
+		return new Resource(MINERALS, amount);
+	}
+	
+	public static Resource vespene(int amount){
+		return new Resource(VESPENE, amount);
+	}
+	
+	public static Resource curSupply(int amount){
+		return new Resource(CURSUPPLY, amount);
+	}
+	
+	public static Resource maxSupply(int amount){
+		return new Resource(MAXSUPPLY, amount);
+	}
+	
+	public static Resource idleWorkers(){
+		return new Resource(IDLEWORKERS, 1);
+	}
 }

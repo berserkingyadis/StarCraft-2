@@ -29,7 +29,7 @@ public class GameObject {
 			icons.put("NoLarva", new BufferedImage[]{bi});
 		}
 		
-		int x = 1120, y = 630;
+		int x = 1120, y = 633;
 		BufferedImage bi = icons.get("NoLarva")[0];
 		for(int i = 0; i < bi.getHeight(); i++){
 			for(int j = 0; j < bi.getWidth(); j++){
@@ -130,6 +130,10 @@ public class GameObject {
 	}
 
 	public boolean isType(String type) {
-		return false;
+		return this.getClass().getName().equals(type);
+	}
+	
+	public String toString(){
+		return this.getClass().getSimpleName() + " X " + x + " Y " + y + " WIDTH " + width + " HEIGHT " + height;
 	}
 }

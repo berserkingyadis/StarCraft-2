@@ -64,7 +64,7 @@ public class StarCraftClassifier {
 			BARRACKS2 = new Point(430, 500);
 			REFINERY = new Point(width/2 + 100, 100);
 			REFINERY2 = new Point(width/2 + 100, 575);
-			FACTORY = new Point(250, 385);
+			FACTORY = new Point(250, 300);
 			ARMORY = new Point(585, 176);
 			ENEMY = new Point(70, 590);
 			RALLY = new Point(118, 716);
@@ -74,7 +74,7 @@ public class StarCraftClassifier {
 			BARRACKS2 = new Point(width - 430, 500);
 			REFINERY = new Point(width/2 - 50, 100);
 			REFINERY2 = new Point(width/2 - 50, 575);
-			FACTORY = new Point(width - 250, 385);
+			FACTORY = new Point(width - 250, 300);
 			ARMORY = new Point(width - 585, 176);
 			ENEMY = new Point(150, 740);
 			RALLY = new Point(105, 615);
@@ -388,67 +388,64 @@ public class StarCraftClassifier {
 		
 		
 		//END GAME
-		for(int i = 0; i < 2; i++){
-			for(int wave = 0; wave < 2; wave++){
+		while(System.currentTimeMillis() - thorStart < realToGameTime(60000)){
+			tryToBuildMarine(ai);
+			ai.sleep(0.5);
+		}
+		
+		//Call down supplies
+		ai.selectGroup(7);
+		ai.type(KeyEvent.VK_X);
+		ai.sleep(0.3);
+		ai.leftClick(getSupply(4));
+		
+		boolean builtThor = false;
+		while(ai.getResourceAmount(Resource.MAXSUPPLY) > 0){
 
-				if(i == 0 && wave == 1){
-					while(System.currentTimeMillis() - thorStart < realToGameTime(60));
-				}
-				
-				//PREPARE ATTACK
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_A);
-				if(i == 0 && wave == 0){
-					ai.leftClick(RALLY);
-				} else if (i == 0){
-					ai.leftClick(RALLY2);
-				} else {
-					ai.leftClick(ENEMY);
-				}
+			//PREPARE ATTACK
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_A);
+			ai.leftClick(ENEMY);
+			//Classify
+			ai.classify();
 
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_F2);
-				//Classify
-				ai.classify();
-				
-				//BUILD THORS
-				ai.selectGroup(9);
-				ai.waitFor(min300);
-				ai.waitFor(vesp200);
-				ai.type(KeyEvent.VK_T);
-				
-				//BUILD MARINES
-				for(int m = 0; m < 8; m++){
+			//BUILD THORS
+			builtThor = tryToBuildThor(ai);
 
-					ai.type(KeyEvent.VK_F2);
-					ai.type(KeyEvent.VK_F2);
-					//Classify
-					ai.classify();
-					
-					ai.selectGroup(8);
-					ai.waitFor(min50);
-					ai.type(KeyEvent.VK_A);
-				}
-
+			//BUILD MARINES
+			for(int m = 0; builtThor && m < 4; m++){
+				tryToBuildMarine(ai);
+				ai.sleep(0.5);
 			}
 			
-			//Watch
-			for(int j = 0; j < 120; j++){
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_A);
-				ai.leftClick(ENEMY);
-				ai.type(KeyEvent.VK_F2);
-				ai.type(KeyEvent.VK_F2);
-				ai.leftClick(new Point(1160, 120));
-				if(j % 10 == 0){
-					//Classify
-					ai.classify();
-				}
-				ai.sleep(0.3);
-			}
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_A);
+			ai.leftClick(ENEMY);
+			ai.type(KeyEvent.VK_F2);
+			ai.type(KeyEvent.VK_F2);
+			ai.leftClick(new Point(1160, 120));
+			ai.classify();
+			ai.sleep(0.3);
 		}	
 		
+	}
+	
+	private static boolean tryToBuildThor(AI ai){
+		if(ai.getResourceAmount(Resource.MINERALS) >= 300 &&
+			ai.getResourceAmount(Resource.VESPENE) >= 200){
+			ai.selectGroup(9);
+			ai.type(KeyEvent.VK_T);
+			return true;
+		}
+		return false;
+	}
+	
+	private static void tryToBuildMarine(AI ai){
+		if(ai.getResourceAmount(Resource.MINERALS) >= 50){
+			ai.selectGroup(8);
+			ai.type(KeyEvent.VK_A);
+		}
 	}
 	
 	private static Point getSupply(int num){

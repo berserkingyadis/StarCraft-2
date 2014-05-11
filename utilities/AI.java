@@ -1,7 +1,10 @@
 package utilities;
 
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -15,24 +18,33 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import networking.NetworkedStarCraftDetector;
+
 public class AI {
-	
 	private static final boolean DEBUGGING = true;
+	private static final boolean CLASSIFYING = false;
+	private static final boolean HUMAN_LIKE = true;
+	private static final double SLOW = 2, FAST = 3;
+	private static double PPMS = SLOW;
+	private double mouseX = 0, mouseY = 0, xVel = 0, yVel = 0;
+	private long lastMouseMoveTime;
 	private Robot robot;
 	private final Rectangle screenSize;
-	private NetworkedMatlabCommunicator server;
+	private NetworkedStarCraftDetector detectorThread;
 	private final static int GUI_Y = 525;
 	private static int serialNum = 5000;
+	private BufferedImage screenshot = null;
+	private long lastScreenshot = 0;
+	private long screenshotDelay = 250;
 
 	public AI() {
-		try {
-			server = new NetworkedMatlabCommunicator();
-		} catch (IOException e1) {
-			
-		}
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		screenSize = new Rectangle(0, 0, dim.width, dim.height);
+		Point mouse = MouseInfo.getPointerInfo().getLocation();
+		mouseX = mouse.x;
+		mouseY = mouse.y;
 		try {
+
 			robot = new Robot();
 		} catch (AWTException e) {
 			// TODO Auto-generated catch block
@@ -40,30 +52,59 @@ public class AI {
 		}
 	}
 
-
-	public void classify(){
-		try {
-			BufferedImage bi = gamePlayScreenShot();
-			String[] data = server.getBoundingBoxesForScreenshot(bi);
-			GameObject[] objects = Util.getGameObjects(data);
-			for(int i = 0; objects != null && i < objects.length; i++){
-				GameObject go = objects[i];
-				BufferedImage im = new BufferedImage(go.getWidth(), go.getHeight(), BufferedImage.TYPE_INT_RGB);
-				for(int y = 0; y < go.getHeight(); y++){
-					for(int x = 0; x < go.getWidth(); x++){
-						im.setRGB(x, y, bi.getRGB(x+go.getX(),y+go.getY()));
-					}
-				}
-				ImageIO.write(im, "png",
-						new File("boxes/" + go.getClass().getSimpleName() + "_" + serialNum++ + ".png"));
-			}
-				
-		} catch (IOException e) {
-		}
-		
+	public void setMouseSpeed(double speed) {
+		PPMS = speed;
 	}
-	
-	public void altTab(){
+
+	public void slowMouse() {
+		PPMS = SLOW;
+	}
+
+	public void fastMouse() {
+		PPMS = FAST;
+	}
+
+	public void startDetectorThread() {
+		try {
+			detectorThread = new NetworkedStarCraftDetector(
+					"cedar.cs.wisc.edu", 8002);
+			detectorThread.addUnitOfInterest("All");
+			detectorThread.start();
+		} catch (AWTException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void classify() {
+		if (CLASSIFYING) {
+			try {
+				BufferedImage bi = gamePlayScreenShot();
+				sleep(0.3);
+				String[] data = detectorThread.getMostRecentInformation()
+						.split(",");
+				GameObject[] objects = Util.getGameObjects(data);
+				for (int i = 0; objects != null && i < objects.length; i++) {
+					GameObject go = objects[i];
+					BufferedImage im = new BufferedImage(go.getWidth(),
+							go.getHeight(), BufferedImage.TYPE_INT_RGB);
+					for (int y = 0; y < go.getHeight(); y++) {
+						for (int x = 0; x < go.getWidth(); x++) {
+							im.setRGB(x, y,
+									bi.getRGB(x + go.getX(), y + go.getY()));
+						}
+					}
+					ImageIO.write(im, "png", new File("boxes/"
+							+ go.getClass().getSimpleName() + "_" + serialNum++
+							+ ".png"));
+				}
+
+			} catch (IOException e) {
+			}
+		}
+	}
+
+	public void altTab() {
 		try {
 			robot.keyPress(KeyEvent.VK_ALT);
 			Thread.sleep(100);
@@ -71,27 +112,27 @@ public class AI {
 			Thread.sleep(100);
 			robot.keyRelease(KeyEvent.VK_TAB);
 			robot.keyRelease(KeyEvent.VK_ALT);
-		}  catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void leftClick(Point p){
+	public void leftClick(Point p) {
 		leftClick(p.x, p.y);
 	}
-	
-	public void rightClick(Point p){
+
+	public void rightClick(Point p) {
 		rightClick(p.x, p.y);
 	}
-	
-	public void shiftLeftClick(Point p){
+
+	public void shiftLeftClick(Point p) {
 		shiftLeftClick(p.x, p.y);
 	}
-	
-	public void shiftRightClick(Point p){
+
+	public void shiftRightClick(Point p) {
 		shiftRightClick(p.x, p.y);
 	}
-	
+
 	public void leftClick(GameObject obj) {
 		leftClick(obj.getCenter().x, obj.getCenter().y);
 	}
@@ -105,24 +146,75 @@ public class AI {
 	}
 
 	public void shiftRightClick(GameObject obj) {
-		shiftRightClick(obj.getCenter().x,
-				obj.getCenter().y);
+		shiftRightClick(obj.getCenter().x, obj.getCenter().y);
+	}
+
+	public void moveMouse(int x, int y) {
+
+		if (HUMAN_LIKE) {
+
+			lastMouseMoveTime = System.currentTimeMillis();
+			while (!(mouseX == x && mouseY == y)) {
+				// Get current location
+				// Done here to allow tampering
+				Point mouse = MouseInfo.getPointerInfo().getLocation();
+				mouseX = mouse.x;
+				mouseY = mouse.y;
+				// Used to quit when user interrupts
+				/*
+				 * if((int)mouseX != mouse.x || (int)mouseY != mouse.y){
+				 * System.exit(0); } //
+				 */
+
+				double xDist = x - mouseX;
+				double yDist = y - mouseY;
+				double angle = Math.atan2(yDist, xDist);
+				xVel = Math.cos(angle) * PPMS;
+				yVel = Math.sin(angle) * PPMS;
+				long newTime = System.currentTimeMillis();
+				long deltaTime = newTime - lastMouseMoveTime;
+				double toMoveX;
+				if (Math.abs(x - mouseX) < Math.abs(xVel * deltaTime)) {
+					toMoveX = x - mouseX;
+				} else {
+					toMoveX = xVel * deltaTime;
+				}
+
+				double toMoveY;
+				if (Math.abs(y - mouseY) < Math.abs(yVel * deltaTime)) {
+					toMoveY = y - mouseY;
+				} else {
+					toMoveY = yVel * deltaTime;
+				}
+
+				mouseX += toMoveX;
+				mouseY += toMoveY;
+				robot.mouseMove((int) mouseX, (int) mouseY);
+				lastMouseMoveTime = newTime;
+				sleep(0.01);
+			}
+		} else {
+			robot.mouseMove(x, y);
+		}
+	}
+
+	public void killDetection() {
 	}
 
 	public void leftClick(int x, int y) {
-		robot.mouseMove(x, y);
+		moveMouse(x, y);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
 	public void rightClick(int x, int y) {
-		robot.mouseMove(x, y);
+		moveMouse(x, y);
 		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 	}
 
 	public void shiftLeftClick(int x, int y) {
-		robot.mouseMove(x, y);
+		moveMouse(x, y);
 		robot.keyPress(KeyEvent.VK_SHIFT);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -130,17 +222,24 @@ public class AI {
 	}
 
 	public void shiftRightClick(int x, int y) {
-		robot.mouseMove(x, y);
+		moveMouse(x, y);
 		robot.keyPress(KeyEvent.VK_SHIFT);
 		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 		robot.keyRelease(KeyEvent.VK_SHIFT);
 	}
 
-	public void selectAll() {
-		robot.mouseMove(50, 50);
+	public void selectArea(Rectangle area) {
+		moveMouse(area.x, area.y);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-		robot.mouseMove(screenSize.width - 50, screenSize.height - 50);
+		moveMouse(area.x + area.width, area.y + area.height);
+		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	}
+
+	public void selectAll() {
+		moveMouse(50, 50);
+		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		moveMouse(screenSize.width - 50, screenSize.height - 222);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
@@ -177,13 +276,13 @@ public class AI {
 	}
 
 	public void setMouse(int x, int y) {
-		robot.mouseMove(x, y);
+		moveMouse(x, y);
 	}
 
 	public void sleep(double seconds) {
 		try {
-			Thread.sleep((int)(seconds*1000));
-			
+			Thread.sleep((int) (seconds * 1000));
+
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -217,7 +316,7 @@ public class AI {
 		int target = param.getAmount();
 
 		if (param.getType() == Resource.IDLEWORKERS) {
-			while (!haveIdleWorkers()){
+			while (!haveIdleWorkers()) {
 				try {
 					Thread.sleep(333);
 				} catch (InterruptedException e) {
@@ -225,7 +324,7 @@ public class AI {
 				}
 			}
 		} else {
-			
+
 			while (value < target) {
 				try {
 					Thread.sleep(500);
@@ -250,87 +349,106 @@ public class AI {
 		return Util.haveIdleWorkers(im);
 	}
 
-	public boolean canClickCommand(int x, int y){
+	public boolean canClickCommand(int x, int y) {
 		BufferedImage im = screenShot();
-		
+
 		return Util.canClickCommand(im, x, y);
 	}
-	
+
 	public void setMouse(Point p) {
-		setMouse(p.x, p.y);		
+		setMouse(p.x, p.y);
 	}
 
 	public boolean isAtBottomBase() {
 		BufferedImage bi = screenShot();
 		return Util.isAtBottomBase(bi);
 	}
-	
-	public boolean isAtBottomBaseRequest(){
-		try {
-			BufferedImage bi = screenShot();
-			String[] data = server.getBoundingBoxesForScreenshot(bi);
-			GameObject[] objects = Util.getGameObjects(data);
-			for(int i = 0; i < objects.length; i++){
-				if(objects[i].isType("CommandCenter")){
-					return objects[i].getCenter().x < bi.getWidth()/2;
-				}
+
+	public boolean isAtBottomBaseRequest() {
+		BufferedImage bi = screenShot();
+		String[] data = detectorThread.getCurrentInformation().split(",");
+		GameObject[] objects = Util.getGameObjects(data);
+		for (int i = 0; i < objects.length; i++) {
+			if (objects[i].isType("CommandCenter")) {
+				return objects[i].getCenter().x < bi.getWidth() / 2;
 			}
-			
-			System.err.println("NO BASE FOUND!");
-			return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+
+		System.err.println("NO BASE FOUND!");
 		return true;
 	}
-	
-	public GameObject[] requestGameObjects(String type){
-		try {
-			ArrayList<GameObject> filterObjects = new ArrayList<GameObject>();
-			BufferedImage bi = screenShot();
-			String[] data = server.getBoundingBoxesForScreenshot(bi);
-			GameObject[] objects = Util.getGameObjects(data);
-			for(int i = 0; i < objects.length; i++){
-				System.out.println(objects[i].getClass().getSimpleName());
-				if(objects[i].getClass().getSimpleName().equals(type)){
-					if(objects[i].getCenter().y < GUI_Y){
-						System.out.println("added");
-						filterObjects.add(objects[i]);
-					}
-				}
-			}
-			
-			//Ensure correct type
-			for(int i = 0; i < filterObjects.size(); i++){
-				GameObject current = filterObjects.get(i);
-				leftClick(current);
-				sleep(1);
-				bi = screenShot();
-				sleep(1);
-				if(!current.isSelected(bi)){
-					System.out.println("removed");
-					filterObjects.remove(i);
-					i--;
-				}
-				
-				shiftLeftClick(current);
-			}
 
-			return filterObjects.toArray(new GameObject[]{});
-		} catch (IOException e) {
-			return null;
+	public GameObject[] requestGameObjects() {
+		return requestGameObjects(false);
+
+	}
+
+	public void addUnitRequest(String type) {
+		detectorThread.addUnitOfInterest(type);
+	}
+
+	public void clearUnitRequests() {
+		detectorThread.clearUnitsOfInterest();
+	}
+
+	public GameObject[] requestGameObjects(boolean takeNewScreenShot) {
+		ArrayList<GameObject> filterObjects = new ArrayList<GameObject>();
+		String[] data;
+		if (takeNewScreenShot) {
+			data = detectorThread.getCurrentInformation().split(",");
+		} else {
+			data = detectorThread.getMostRecentInformation().split(",");
 		}
-		
+		GameObject[] objects = Util.getGameObjects(data);
+		for (int i = 0; objects != null && i < objects.length; i++) {
+			if (objects[i].getCenter().y < GUI_Y) {
+				filterObjects.add(objects[i]);
+			}
+		}
+
+		return filterObjects.toArray(new GameObject[] {});
+
 	}
 
 	public BufferedImage screenShot() {
-		return robot.createScreenCapture(screenSize);
+		if (screenshot == null
+				|| System.currentTimeMillis() - lastScreenshot > screenshotDelay) {
+			screenshot = robot.createScreenCapture(screenSize);
+			lastScreenshot = System.currentTimeMillis();
+		}
+		return screenshot;
 	}
-	
-	public BufferedImage gamePlayScreenShot(){
-		Rectangle gameplay = new Rectangle(0,0,screenSize.width, 7*screenSize.height/10);
+
+	public void clearScreenshot() {
+		screenshot = null;
+	}
+
+	public BufferedImage gamePlayScreenShot() {
+		Rectangle gameplay = new Rectangle(0, 0, screenSize.width,
+				9 * screenSize.height / 10);
 		return robot.createScreenCapture(gameplay);
+	}
+
+	public Rectangle[] findAllBases() {
+		try {
+			screenShot();
+			Rectangle[] bases = Util.findBestClusters(screenshot);
+			ImageIO.write(screenshot, "png", new File("preclusters.png"));
+			Graphics g = screenshot.createGraphics();
+			g.setColor(Color.RED);
+			for (int i = 0; i < bases.length; i++) {
+				Rectangle r = bases[i];
+				g.drawLine(r.x, r.y, r.x + r.width, r.y);
+				g.drawLine(r.x, r.y, r.x, r.y + r.height);
+				g.drawLine(r.x, r.y + r.height, r.x + r.width, r.y + r.height);
+				g.drawLine(r.x + r.width, r.y, r.x + r.width, r.y + r.height);
+			}
+			
+			ImageIO.write(screenshot, "png", new File("clusters.png"));
+			return bases;
+		} catch (IOException e) {
+		}
+		return null;
 	}
 
 }
