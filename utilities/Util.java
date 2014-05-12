@@ -14,13 +14,14 @@ import javax.imageio.ImageIO;
 
 public class Util {
 
-	private static final String GUI_ICONS_DIR = "GUI_Images/";
+	public static final Rectangle MINIMAP = new Rectangle(20, 575, 185, 180);
+	
 	private static final int DIGIT_WIDTH = 9;
+	private static final String GUI_ICONS_DIR = "GUI_Images/";
 	private static final Color RESOURCES = new Color(126, 191, 241);
 	private static final Color SELF = new Color(0,187,0);
 	private static final Color SELF2 = new Color(0,255,0);
 	private static final Color ENEMY = new Color(255,0,0);
-	public static final Rectangle MINIMAP = new Rectangle(20, 575, 185, 180);
 	private static final int[][][] DIGITS = new int[][][] {
 			// ZERO
 			{ { 130, 255, 255, 255, 255, 255, 130 },
@@ -95,6 +96,12 @@ public class Util {
 
 	};
 
+	/**
+	 * Returns the current amount of the specified resource
+	 * @param im screenshot
+	 * @param type resource identifier
+	 * @return the amount
+	 */
 	public static int getResourceAmount(BufferedImage im, int type) {
 		int x = 0, y = 16;
 		switch (type) {
@@ -132,6 +139,13 @@ public class Util {
 		return amount;
 	}
 
+	/**
+	 * Gets the digit at pixel location (x,y)
+	 * @param im screenshot
+	 * @param x horizontal pixel value
+	 * @param y vertical pixel value
+	 * @return the digit value
+	 */
 	private static int getDigit(BufferedImage im, int x, int y) {
 		long bestVal = Long.MAX_VALUE;
 		int bestDig = -1;
@@ -169,17 +183,33 @@ public class Util {
 		return bestDig;
 	}
 
+	/**
+	 * Calculates the gray scale of a color
+	 * @param color the color to convert
+	 * @return gray scale value
+	 */
 	private static int grayScale(int color) {
 		Color c = new Color(color);
 		return (c.getRed() + c.getBlue() + c.getGreen()) / 3;
 	}
 
+	/**
+	 * Returns whether there are idle workers or not
+	 * @param im screenshot
+	 * @return true if there is at least one idle worker, false otherwise
+	 */
 	public static boolean haveIdleWorkers(BufferedImage im) {
 		int color = im.getRGB(40, 550);
 		Color c = new Color(color);
 		return c.getGreen() > 20;
 	}
 
+	/**
+	 * Checks which base the player is at. Does not use CV detection.
+	 * Check AI for a CV implementation.
+	 * @param bi screenshot
+	 * @return true if at bottom base location, false otherwise
+	 */
 	public static boolean isAtBottomBase(BufferedImage bi) {
 		int color = bi.getRGB(148, 736);
 		Color c = new Color(color);
@@ -187,6 +217,12 @@ public class Util {
 		return c.getGreen() > 100;
 	}
 
+	/**
+	 * Converts a string array of types and parameters to their
+	 * respective objects.
+	 * @param objects the string array in the format <classname> x y width height
+	 * @return the array of GameObjects
+	 */
 	public static GameObject[] getGameObjects(String[] objects) {
 		GameObject[] result = new GameObject[objects.length];
 
@@ -231,6 +267,11 @@ public class Util {
 		return result;
 	}
 
+	/**
+	 * Loads all icon images that contain 'object' in their pathname
+	 * @param object the pathname substring requested
+	 * @return all valid images
+	 */
 	public static BufferedImage[] loadIconsFor(String object) {
 		try {
 			File dir = new File(GUI_ICONS_DIR);
@@ -249,6 +290,14 @@ public class Util {
 
 	}
 
+	/**
+	 * Returns whether or not the command at location (x,y) on the unit command
+	 * card can be clicked
+	 * @param im screenshot
+	 * @param x column of command
+	 * @param y row of command
+	 * @return false if the command cannot be click or doesn't exist, true otherwise
+	 */
 	public static boolean canClickCommand(BufferedImage im, int x, int y) {
 		Point p = getCommand(x,y);
 		int color = im.getRGB(p.x, p.y);
@@ -257,6 +306,12 @@ public class Util {
 		return Math.max(Math.max(c.getRed(), c.getGreen()), c.getBlue()) > 100;
 	}
 	
+	/**
+	 * Converts a row and column to pixel location
+	 * @param x column of command
+	 * @param y row of command
+	 * @return the associated point
+	 */
 	public static Point getCommand(int x, int y){
 		Point p = new Point(1102, 650);
 		p.x += 49*x;
@@ -264,6 +319,12 @@ public class Util {
 		return p;
 	}
 
+	/**
+	 * Calculates k-means clustering of all minerals in the minimap for k= 4-20
+	 * and returns the bounding boxes for the best scoring k
+	 * @param screenshot screenshot
+	 * @return best bounding boxes
+	 */
 	public static Rectangle[] findBestClusters(BufferedImage screenshot) {
 		//Get all points
 		Point[] points = findAllPoints(screenshot);
@@ -285,6 +346,11 @@ public class Util {
 		return clusters;
 	}
 	
+	/**
+	 * Calculates a score for a group of bounding boxes
+	 * @param clusters the boxes
+	 * @return the score
+	 */
 	private static double scoreClusters(Rectangle[] clusters) {
 		int minArea = Integer.MAX_VALUE;
 		int maxArea = 0;
@@ -296,6 +362,12 @@ public class Util {
 		return maxArea - minArea;
 	}
 	
+	/**
+	 * Find the player's base from a group of bases
+	 * @param clusters possible base locations
+	 * @param screen screenshot
+	 * @return the index of the base location in clusters, -1 if not found
+	 */
 	public static int findOwnBase(Rectangle[] clusters, BufferedImage screen){
 		int result = findColorBase(clusters, screen, SELF);
 		if(result < 0){
@@ -304,10 +376,23 @@ public class Util {
 		return result;
 	}
 	
+	/**
+	 * Find the enemy's base from a group of bases
+	 * @param clusters possible base locations
+	 * @param screen screenshot
+	 * @return the index of the base location in clusters, -1 if not found
+	 */
 	public static int findEnemyBase(Rectangle[] clusters, BufferedImage screen){
 		return findColorBase(clusters, screen, ENEMY);
 	}
 
+	/**
+	 * Finds the given color in a group of regions
+	 * @param clusters regions
+	 * @param screen screenshot
+	 * @param c color being searched for
+	 * @return first region index containing c, -1 if not found
+	 */
 	private static int findColorBase(Rectangle[] clusters, BufferedImage screen, Color c){
 		for(int i = 0; i < clusters.length; i++){
 			Rectangle r = clusters[i];
@@ -323,6 +408,11 @@ public class Util {
 		return -1;
 	}
 	
+	/**
+	 * Returns an array of all the points in the minimap that represent minerals
+	 * @param bi screenshot
+	 * @return the array of mineral locations
+	 */
 	public static Point[] findAllPoints(BufferedImage bi){
 		ArrayList<Point> points = new ArrayList<Point>();
 		for(int y = MINIMAP.y; y < MINIMAP.y + MINIMAP.height; y++){
@@ -336,6 +426,12 @@ public class Util {
 		return points.toArray(new Point[]{});
 	}
 	
+	/**
+	 * Calculates the bounding for a given set of points and k clusters
+	 * @param points the points to cluster
+	 * @param k number of clusters
+	 * @return bounding boxes for each cluster
+	 */
 	public static Rectangle[] runKMeans(Point[] points, int k){
 		Rectangle[] clusters = new Rectangle[k];
 		Point[] clusterCenters = new Point[k];
@@ -354,7 +450,7 @@ public class Util {
 			int bestIndex = 0;
 			for(int j = 0; j < points.length; j++){
 				if(points[j] != null){
-					double dist = dist(clusterCenters[i], points[j]);
+					double dist = clusterCenters[i].distance(points[j]);
 					if(dist < bestDist){
 						//Make sure it's not already used
 						boolean ok = true;
@@ -383,7 +479,7 @@ public class Util {
 				double bestDist = Double.MAX_VALUE;
 				int bestIndex = 0;
 				for(int j = 0; j < clusterCenters.length; j++){
-					double dist = dist(points[i], clusterCenters[j]);
+					double dist = points[i].distance(clusterCenters[j]);
 					if(dist < bestDist){
 						bestDist = dist;
 						bestIndex = j;
@@ -430,7 +526,7 @@ public class Util {
 					double bestDist = Double.MAX_VALUE;
 					int bestIndex = 0;
 					for(int center = 0; center < clusterCenters.length; center++){
-						double dist = dist(clusterCenters[center], p);
+						double dist = clusterCenters[center].distance(p);
 						if(dist < bestDist){
 							bestDist = dist;
 							bestIndex = center;
@@ -474,7 +570,11 @@ public class Util {
 		return clusters;
 	}
 	
-	//BUBBLE SORT!!!
+	/**
+	 * Sorts clusters as best as possible to get a left to right, top to bottom ordering.
+	 * ... using bubble sort. There's at max 20 clusters, OK?
+	 * @param clusters clusters to sort
+	 */
 	public static void sort(Rectangle[] clusters){
 		for(int i = 0; i < clusters.length; i++){
 			for(int j = i + 1; j < clusters.length; j++){
@@ -487,6 +587,12 @@ public class Util {
 		}
 	}
 	
+	/**
+	 * Determines if two boxes are currently in the correct order
+	 * @param r1 rectangle currently considered first
+	 * @param r2 rectangle currently considered second
+	 * @return true if they should be reversed, false otherwise
+	 */
 	public static boolean outOfOrder(Rectangle r1, Rectangle r2){
 		if(r1.y+r1.height < r2.y){
 			return false;
@@ -496,9 +602,4 @@ public class Util {
 			return r1.x > r2.x;
 		}
 	}
-	
-	public static double dist(Point p1, Point p2){
-		return Math.sqrt((p1.x - p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y));
-	}
-
 }

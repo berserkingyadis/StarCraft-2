@@ -2,22 +2,16 @@ package networking;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Set;
-import java.io.OutputStreamWriter;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 
 public class RunnableDetectionFetcher implements Runnable{

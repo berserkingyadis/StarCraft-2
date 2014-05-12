@@ -21,21 +21,27 @@ import javax.imageio.ImageIO;
 import networking.NetworkedStarCraftDetector;
 
 public class AI {
+	
+	// Class constants to change execution behavior
 	private static final boolean DEBUGGING = true;
 	private static final boolean CLASSIFYING = false;
 	private static final boolean HUMAN_LIKE = true;
+	
+	// Class constants 
 	private static final double SLOW = 2, FAST = 3;
-	private static double PPMS = SLOW;
-	private double mouseX = 0, mouseY = 0, xVel = 0, yVel = 0;
-	private long lastMouseMoveTime;
-	private Robot robot;
-	private final Rectangle screenSize;
-	private NetworkedStarCraftDetector detectorThread;
 	private final static int GUI_Y = 525;
+	private final Rectangle screenSize;
+	
+	// Instance variables
 	private static int serialNum = 5000;
-	private BufferedImage screenshot = null;
+	private double mouseX = 0, mouseY = 0, xVel = 0, yVel = 0;
+	private double PPMS = SLOW;
 	private long lastScreenshot = 0;
 	private long screenshotDelay = 250;
+	private long lastMouseMoveTime;
+	private NetworkedStarCraftDetector detectorThread;
+	private BufferedImage screenshot = null;
+	private Robot robot;
 
 	public AI() {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -52,18 +58,33 @@ public class AI {
 		}
 	}
 
+	/**
+	 * Set the speed at which the mouse moves.
+	 * 
+	 * @param speed mouse speed in pixels per millisecond
+	 */
 	public void setMouseSpeed(double speed) {
 		PPMS = speed;
 	}
 
+	/**
+	 * Set the mouse to a normal speed
+	 */
 	public void slowMouse() {
 		PPMS = SLOW;
 	}
 
+	/**
+	 * Set the mouse to a fast speed
+	 */
 	public void fastMouse() {
 		PPMS = FAST;
 	}
 
+	/**
+	 * Connect to the detection server. Look for all units
+	 * of interests to start.
+	 */
 	public void startDetectorThread() {
 		try {
 			detectorThread = new NetworkedStarCraftDetector(
@@ -76,6 +97,11 @@ public class AI {
 
 	}
 
+	/**
+	 * Retrieves the bounding boxes for all units of interest and
+	 * saves that region as a new image. Used for easily generating custom
+	 * negatives in the early stages of creating a cascade detector.
+	 */
 	public void classify() {
 		if (CLASSIFYING) {
 			try {
@@ -104,6 +130,9 @@ public class AI {
 		}
 	}
 
+	/**
+	 * The robot presses alt + tab to switch to the previous window.
+	 */
 	public void altTab() {
 		try {
 			robot.keyPress(KeyEvent.VK_ALT);
@@ -117,38 +146,134 @@ public class AI {
 		}
 	}
 
+	/**
+	 * Moves the mouse to p and left clicks
+	 * @param p the pixel location to click
+	 */
 	public void leftClick(Point p) {
 		leftClick(p.x, p.y);
 	}
 
+	/**
+	 * Moves the mouse to p and right clicks
+	 * @param p the pixel location to click
+	 */
 	public void rightClick(Point p) {
 		rightClick(p.x, p.y);
 	}
 
+	/**
+	 * Moves the mouse to p and left clicks while holding shift
+	 * @param p the pixel location to click
+	 */
 	public void shiftLeftClick(Point p) {
 		shiftLeftClick(p.x, p.y);
 	}
 
+	/**
+	 * Moves the mouse to p and right clicks while holding shift
+	 * @param p the pixel location to click
+	 */
 	public void shiftRightClick(Point p) {
 		shiftRightClick(p.x, p.y);
 	}
 
+	/**
+	 * Moves the mouse to the center of obj and left clicks
+	 * @param obj the GameObject whose center is being clicked
+	 */
 	public void leftClick(GameObject obj) {
 		leftClick(obj.getCenter().x, obj.getCenter().y);
 	}
-
+	
+	/**
+	 * Moves the mouse to the center of obj and right clicks
+	 * @param obj the GameObject whose center is being clicked
+	 */
 	public void rightClick(GameObject obj) {
 		rightClick(obj.getCenter().x, obj.getCenter().y);
 	}
 
+	/**
+	 * Moves the mouse to the center of obj and left clicks while holding shift
+	 * @param obj the GameObject whose center is being clicked
+	 */
 	public void shiftLeftClick(GameObject obj) {
 		shiftLeftClick(obj.getCenter().x, obj.getCenter().y);
 	}
 
+	/**
+	 * Moves the mouse to the center of obj and right clicks while hold shift
+	 * @param obj the GameObject whose center is being clicked
+	 */
 	public void shiftRightClick(GameObject obj) {
 		shiftRightClick(obj.getCenter().x, obj.getCenter().y);
 	}
 
+	/**
+	 * Moves the mouse to pixel location (x,y) and left clicks
+	 * @param x horizontal pixel location
+	 * @param y vertical pixel location
+	 */
+	public void leftClick(int x, int y) {
+		moveMouse(x, y);
+		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	}
+
+	/**
+	 * Moves the mouse to pixel location (x,y) and right clicks
+	 * @param x horizontal pixel location
+	 * @param y vertical pixel location
+	 */
+	public void rightClick(int x, int y) {
+		moveMouse(x, y);
+		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+	}
+
+	/**
+	 * Moves the mouse to pixel location (x,y) and left clicks while holding shift
+	 * @param x horizontal pixel location
+	 * @param y vertical pixel location
+	 */
+	public void shiftLeftClick(int x, int y) {
+		moveMouse(x, y);
+		robot.keyPress(KeyEvent.VK_SHIFT);
+		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+		robot.keyRelease(KeyEvent.VK_SHIFT);
+	}
+
+	/**
+	 * Moves the mouse to pixel location (x,y) and right clicks while holding shift
+	 * @param x horizontal pixel location
+	 * @param y vertical pixel location
+	 */
+	public void shiftRightClick(int x, int y) {
+		moveMouse(x, y);
+		robot.keyPress(KeyEvent.VK_SHIFT);
+		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+		robot.keyRelease(KeyEvent.VK_SHIFT);
+	}
+	
+
+	/**
+	 * Moves the mouse to p
+	 * @param p the pixel location to move to
+	 */
+	public void setMouse(Point p) {
+		setMouse(p.x, p.y);
+	}
+
+	/**
+	 * Moves the mouse to pixel location (x, y). If HUMAN_LIKE is true, this will
+	 * move towards (x,y) at a speed of PPMS pixels per millisecond. Otherwise,
+	 * the mouse is simply placed at that location without simulated movement
+	 * @param x horizontal value of the pixel location
+	 * @param y vertical value of the pixel location
+	 */
 	public void moveMouse(int x, int y) {
 
 		if (HUMAN_LIKE) {
@@ -160,11 +285,6 @@ public class AI {
 				Point mouse = MouseInfo.getPointerInfo().getLocation();
 				mouseX = mouse.x;
 				mouseY = mouse.y;
-				// Used to quit when user interrupts
-				/*
-				 * if((int)mouseX != mouse.x || (int)mouseY != mouse.y){
-				 * System.exit(0); } //
-				 */
 
 				double xDist = x - mouseX;
 				double yDist = y - mouseY;
@@ -197,38 +317,12 @@ public class AI {
 			robot.mouseMove(x, y);
 		}
 	}
-
-	public void killDetection() {
-	}
-
-	public void leftClick(int x, int y) {
-		moveMouse(x, y);
-		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-	}
-
-	public void rightClick(int x, int y) {
-		moveMouse(x, y);
-		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
-		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-	}
-
-	public void shiftLeftClick(int x, int y) {
-		moveMouse(x, y);
-		robot.keyPress(KeyEvent.VK_SHIFT);
-		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-		robot.keyRelease(KeyEvent.VK_SHIFT);
-	}
-
-	public void shiftRightClick(int x, int y) {
-		moveMouse(x, y);
-		robot.keyPress(KeyEvent.VK_SHIFT);
-		robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
-		robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-		robot.keyRelease(KeyEvent.VK_SHIFT);
-	}
-
+	
+	/**
+	 * Moves the mouse to the top left corner of area and clicks and drags to 
+	 * the bottom right corner of area
+	 * @param area the area to drag the mouse over
+	 */
 	public void selectArea(Rectangle area) {
 		moveMouse(area.x, area.y);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -236,6 +330,10 @@ public class AI {
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
+	/**
+	 * Drags the mouse over the area (50,50) to 
+	 * (screenSize.width - 50, screenSize.height - 222)
+	 */
 	public void selectAll() {
 		moveMouse(50, 50);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -243,6 +341,10 @@ public class AI {
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
+	/**
+	 * Saves the current selection to the given group
+	 * @param group the group number to save the selection to
+	 */
 	public void assignToGroup(int group) {
 		robot.keyPress(KeyEvent.VK_CONTROL);
 		robot.keyPress(KeyEvent.VK_0 + group);
@@ -250,24 +352,43 @@ public class AI {
 		robot.keyRelease(KeyEvent.VK_0 + group);
 	}
 
+	/**
+	 * Retrieves a previously assigned group 
+	 * @param group the group number to retrieve
+	 */
 	public void selectGroup(int group) {
 		robot.keyPress(KeyEvent.VK_0 + group);
 		robot.keyRelease(KeyEvent.VK_0 + group);
 	}
 
+	/**
+	 * Gets the width of the entire screen
+	 * @return the screen width
+	 */
 	public int getWidth() {
 		return screenSize.width;
 	}
 
+	/**
+	 * Gets the height of the entire screen
+	 * @return the screen height
+	 */
 	public int getHeight() {
 		return screenSize.height;
 	}
 
+	/**
+	 * Types a single key
+	 * @param vkS the ID of the key to press (given by KeyEvent.VK_?
+	 */
 	public void type(int vkS) {
 		robot.keyPress(vkS);
 		robot.keyRelease(vkS);
 	}
 
+	/**
+	 * Attempts to select all idle workers by pressing ctrl + F1
+	 */
 	public void selectAllIdle() {
 		robot.keyPress(KeyEvent.VK_CONTROL);
 		robot.keyPress(KeyEvent.VK_F1);
@@ -275,10 +396,19 @@ public class AI {
 		robot.keyRelease(KeyEvent.VK_CONTROL);
 	}
 
+	/**
+	 * Moves the mouse to pixel location (x,y)
+	 * @param x horizontal pixel location
+	 * @param y vertical pixel location
+	 */
 	public void setMouse(int x, int y) {
 		moveMouse(x, y);
 	}
 
+	/**
+	 * The AI waits and blocks
+	 * @param seconds the amount of time to wait
+	 */
 	public void sleep(double seconds) {
 		try {
 			Thread.sleep((int) (seconds * 1000));
@@ -288,6 +418,11 @@ public class AI {
 		}
 	}
 
+	/**
+	 * Used to get debugging messages in game. Types the message to the game chat.
+	 * Does nothing if DEBUGGING == false
+	 * @param message the message to display
+	 */
 	public void debug(String message) {
 		if (DEBUGGING) {
 			robot.keyPress(KeyEvent.VK_ENTER);
@@ -311,6 +446,10 @@ public class AI {
 		}
 	}
 
+	/**
+	 * Blocks until the user has the specified resource amount
+	 * @param param the resource needed (e.g. 50 minerals)
+	 */
 	public void waitFor(Resource param) {
 		int value = -1;
 		int target = param.getAmount();
@@ -337,35 +476,58 @@ public class AI {
 
 	}
 
+	/**
+	 * Used to get how much of the given resource is available
+	 * @param type which resource is being requested
+	 * @return the amount of the requested resource that is available
+	 */
 	public int getResourceAmount(int type) {
 		BufferedImage im = robot.createScreenCapture(screenSize);
 
 		return Util.getResourceAmount(im, type);
 	}
 
+	/**
+	 * Used to check if any worker units are not being used
+	 * @return whether or not there are any idle workers
+	 */
 	public boolean haveIdleWorkers() {
 		BufferedImage im = robot.createScreenCapture(screenSize);
 
 		return Util.haveIdleWorkers(im);
 	}
 
+	/**
+	 * Used to check whether a command on the unit command card at (x,y)
+	 * is currently usable
+	 * @param x the column of the command
+	 * @param y the row of the command
+	 * @return false if it cannot be used or there is no command at the location,
+	 * true otherwise.
+	 */
 	public boolean canClickCommand(int x, int y) {
-		BufferedImage im = screenShot();
+		BufferedImage im = screenshot();
 
 		return Util.canClickCommand(im, x, y);
 	}
 
-	public void setMouse(Point p) {
-		setMouse(p.x, p.y);
-	}
-
+	/**
+	 * Used to determine which base the AI is at. Does not use CV, rather finds our 
+	 * location on the minimap
+	 * @return true if the AI started on the bottom base, false otherwise
+	 */
 	public boolean isAtBottomBase() {
-		BufferedImage bi = screenShot();
+		BufferedImage bi = screenshot();
 		return Util.isAtBottomBase(bi);
 	}
 
+	/**
+	 * Used to determine which base the AI is at. Uses CV to determine bases on location of 
+	 * the command center
+	 * @return true if the AI started on the bottom base, false otherwise
+	 */
 	public boolean isAtBottomBaseRequest() {
-		BufferedImage bi = screenShot();
+		BufferedImage bi = screenshot();
 		String[] data = detectorThread.getCurrentInformation().split(",");
 		GameObject[] objects = Util.getGameObjects(data);
 		for (int i = 0; i < objects.length; i++) {
@@ -378,19 +540,36 @@ public class AI {
 		return true;
 	}
 
+	/**
+	 * Adds another detector to run on requests
+	 * @param type which detector to add. A package specified class (e.g. buildings.CommandCenter)
+	 */
+	public void addUnitRequest(String type) {
+		detectorThread.addUnitOfInterest(type);
+	}
+
+	/**
+	 * Removes all requested detectors
+	 */
+	public void clearUnitRequests() {
+		detectorThread.clearUnitsOfInterest();
+	}
+	
+	/**
+	 * Gets the most recent results from detection
+	 * @return the GameObjects the were detected
+	 */
 	public GameObject[] requestGameObjects() {
 		return requestGameObjects(false);
 
 	}
 
-	public void addUnitRequest(String type) {
-		detectorThread.addUnitOfInterest(type);
-	}
-
-	public void clearUnitRequests() {
-		detectorThread.clearUnitsOfInterest();
-	}
-
+	/**
+	 * Gets the most recent results from detection
+	 * @param takeNewScreenShot waits for a new result of detection if true,
+	 * otherwise uses the most recent result
+	 * @return the GameObjects the were detected
+	 */
 	public GameObject[] requestGameObjects(boolean takeNewScreenShot) {
 		ArrayList<GameObject> filterObjects = new ArrayList<GameObject>();
 		String[] data;
@@ -410,7 +589,11 @@ public class AI {
 
 	}
 
-	public BufferedImage screenShot() {
+	/**
+	 * Takes a screenshot if the previous one is expired or non-existant
+	 * @return the screenshot
+	 */
+	public BufferedImage screenshot() {
 		if (screenshot == null
 				|| System.currentTimeMillis() - lastScreenshot > screenshotDelay) {
 			screenshot = robot.createScreenCapture(screenSize);
@@ -419,19 +602,33 @@ public class AI {
 		return screenshot;
 	}
 
+	/**
+	 * Removes the current screenshot so a new one is forced
+	 * next time screenShot() is called
+	 */
 	public void clearScreenshot() {
 		screenshot = null;
 	}
 
+	/**
+	 * Takes a new screenshot, cutting off the bottom 10% (HUD elements)
+	 * @return the screenshot
+	 */
 	public BufferedImage gamePlayScreenShot() {
 		Rectangle gameplay = new Rectangle(0, 0, screenSize.width,
 				9 * screenSize.height / 10);
 		return robot.createScreenCapture(gameplay);
 	}
 
+	/**
+	 * Runs k-means clustering to find all the bases and return them as
+	 * an array of rectangle bounding boxes. Also saves an image of the boxes overlayed
+	 * on the screen to allow for inspection
+	 * @return the bases bounding boxes
+	 */
 	public Rectangle[] findAllBases() {
 		try {
-			screenShot();
+			screenshot();
 			Rectangle[] bases = Util.findBestClusters(screenshot);
 			ImageIO.write(screenshot, "png", new File("preclusters.png"));
 			Graphics g = screenshot.createGraphics();

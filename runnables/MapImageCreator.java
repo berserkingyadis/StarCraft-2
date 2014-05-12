@@ -23,7 +23,7 @@ public class MapImageCreator {
 				for (int j = 0; j < xTiles; j++) {
 					ai.leftClick(x, y);
 					ai.sleep(1);
-					BufferedImage im = ai.screenShot();
+					BufferedImage im = ai.screenshot();
 					ai.sleep(1);
 					File f = new File("MapImages/tile_" + i + "_" + j + ".png");
 					ai.sleep(1);

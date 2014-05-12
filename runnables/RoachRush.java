@@ -272,7 +272,7 @@ public class RoachRush {
 	private static void tryToMakeZergling(AI ai){
 		ai.selectGroup(1);
 		ai.sleep(0.3);
-		if(GameObject.hasLarva(ai.screenShot())){
+		if(GameObject.hasLarva(ai.screenshot())){
 			if(ai.getResourceAmount(Resource.MINERALS) >= 50){
 				if(ai.getResourceAmount(Resource.CURSUPPLY) != 
 						ai.getResourceAmount(Resource.MAXSUPPLY)){
@@ -288,7 +288,7 @@ public class RoachRush {
 		ai.sleep(0.3);
 		if(ai.getResourceAmount(Resource.MINERALS) >= 75 &&
 				ai.getResourceAmount(Resource.VESPENE) >= 25 &&
-				GameObject.hasLarva(ai.screenShot()) && 
+				GameObject.hasLarva(ai.screenshot()) && 
 				ai.getResourceAmount(Resource.CURSUPPLY) < 
 				ai.getResourceAmount(Resource.MAXSUPPLY) - 1){
 			ai.type(KeyEvent.VK_S);
@@ -301,7 +301,7 @@ public class RoachRush {
 		while(ai.getResourceAmount(Resource.CURSUPPLY) == 
 				ai.getResourceAmount(Resource.MAXSUPPLY));
 		ai.waitFor(min50);
-		while(!GameObject.hasLarva(ai.screenShot()));
+		while(!GameObject.hasLarva(ai.screenshot()));
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_D);
 	}
@@ -312,10 +312,10 @@ public class RoachRush {
 		while(ai.getResourceAmount(Resource.CURSUPPLY) == 
 				ai.getResourceAmount(Resource.MAXSUPPLY));
 		ai.waitFor(min50);
-		BufferedImage bi = ai.screenShot();
+		BufferedImage bi = ai.screenshot();
 		ai.sleep(0.3);
 		while(!GameObject.hasLarva(bi)){
-			bi = ai.screenShot();
+			bi = ai.screenshot();
 			ai.sleep(0.3);
 		}
 		ai.type(KeyEvent.VK_S);
@@ -329,7 +329,7 @@ public class RoachRush {
 				ai.getResourceAmount(Resource.MAXSUPPLY) - 1);
 		ai.waitFor(min75);
 		ai.waitFor(vesp25);
-		while(!GameObject.hasLarva(ai.screenShot()));
+		while(!GameObject.hasLarva(ai.screenshot()));
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_R);
 	}
@@ -338,7 +338,7 @@ public class RoachRush {
 		ai.selectGroup(1);
 		ai.sleep(0.1);
 		ai.waitFor(min100);
-		while(!GameObject.hasLarva(ai.screenShot()));
+		while(!GameObject.hasLarva(ai.screenshot()));
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_V);
 	}
@@ -346,7 +346,7 @@ public class RoachRush {
 	private static void makeOverlordIfNeeded(AI ai){
 		ai.selectGroup(1);
 		ai.sleep(0.1);
-		if(GameObject.hasLarva(ai.screenShot())){
+		if(GameObject.hasLarva(ai.screenshot())){
 			if(ai.getResourceAmount(Resource.MINERALS) >= 100){
 				if(ai.getResourceAmount(Resource.CURSUPPLY) >= 
 						ai.getResourceAmount(Resource.MAXSUPPLY) - 1){

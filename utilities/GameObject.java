@@ -14,6 +14,13 @@ public class GameObject {
 	private static final int ICON_X = 440, ICON_Y = 630;
 	private static HashMap<String, BufferedImage[]> icons;
 
+	/**
+	 * Checks if any larva are available when playing zerg.
+	 * This method should not be in this class, but it was
+	 * convenient to use the icons hash.
+	 * @param im a screenshot
+	 * @return true if there is at least one larva, false otherwise.
+	 */
 	public static boolean hasLarva(BufferedImage im){
 		if(icons == null){
 			icons = new HashMap<String, BufferedImage[]>();
@@ -44,6 +51,12 @@ public class GameObject {
 		return false;
 	}
 	
+	/**
+	 * Check if the currently selected unit matches type
+	 * @param im screenshot
+	 * @param type the unit in question
+	 * @return whether type is selected
+	 */
 	public static boolean isSelected(BufferedImage im, String type){
 		if(icons == null){
 			icons = new HashMap<String, BufferedImage[]>();
@@ -56,6 +69,11 @@ public class GameObject {
 		return isSelected(im, icons.get(type));
 	}
 	
+	/**
+	 * Checks if the current selection matches the object type (intended for use by subclasses)
+	 * @param im screenshot
+	 * @return true if this class is currently selected, false otherwise
+	 */
 	public boolean isSelected(BufferedImage im) {
 		if(icons == null){
 			icons = new HashMap<String, BufferedImage[]>();
@@ -68,6 +86,12 @@ public class GameObject {
 		return isSelected(im, icons.get(className));
 	}
 
+	/**
+	 * Checks if the selection matches any of the images in icons
+	 * @param screen screenshot
+	 * @param icons possible selection icons
+	 * @return true if the selection mathes any of the icons, false otherwise
+	 */
 	protected static boolean isSelected(BufferedImage screen,
 			BufferedImage[] icons) {
 		boolean foundOne = false;

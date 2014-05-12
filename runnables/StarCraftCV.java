@@ -12,23 +12,16 @@ import utilities.Util;
 import buildings.CommandCenter;
 
 public class StarCraftCV {
-
-	private static final double /*
-								 * SLOWER = 1.66, SLOW = 1.25, NORMAL = 1, FAST
-								 * = 0.8275,
-								 */
-	FASTER = 0.725;
-
-	private static final double GAME_SPEED = FASTER;
+	private static final double GAME_SPEED = 0.725;
 	private static boolean buildOnLeft = true;
 	private static int width, height, mineralIndex;
-	private static AI ai;
-	public static Point BARRACKS, REFINERY, REFINERY2, FACTORY,
-			FACTORY2, SUPPLY, SUPPLY2, SUPPLY3;
-	public static Rectangle MINERS;
-	private static Rectangle[] bases = null;
 	private static int homeBaseIndex, enemyBaseIndex;
-	public static GameObject[] minerals = null;
+	private static AI ai;
+	private static Rectangle MINERS;
+	private static Rectangle[] bases = null;
+	private static GameObject[] minerals = null;
+	private static Point BARRACKS, REFINERY, REFINERY2, FACTORY,
+	FACTORY2, SUPPLY, SUPPLY2, SUPPLY3;
 	
 	public static void main(String[] args) {
 		ai = new AI();
@@ -359,23 +352,19 @@ public class StarCraftCV {
 		}
 		
 	}
-	
-	private static Point getScoutingResults() {
-		enemyBaseIndex = Util.findEnemyBase(bases, ai.screenShot());
-		while(enemyBaseIndex < 0){
-			bases = ai.findAllBases();
-			enemyBaseIndex = Util.findEnemyBase(bases, ai.screenShot());
-		}
-		return getCenter(bases[enemyBaseIndex]);
-	}
 
+	/**
+	 * Gets all of the base locations and sends a worker to scout them
+	 * out. Also finds our own base locaiton. Once done, 
+	 * getScoutingResults can be called to get the enemy base location
+	 */
 	private static void scoutForEnemy() {
 
 		bases = ai.findAllBases();
-		homeBaseIndex = Util.findOwnBase(bases, ai.screenShot());
+		homeBaseIndex = Util.findOwnBase(bases, ai.screenshot());
 		while(homeBaseIndex < 0){
 			bases = ai.findAllBases();
-			homeBaseIndex = Util.findOwnBase(bases, ai.screenShot());
+			homeBaseIndex = Util.findOwnBase(bases, ai.screenshot());
 		}
 		ai.selectAll();
 		ai.leftClick(getArmyUnit(1));
@@ -400,20 +389,54 @@ public class StarCraftCV {
 		
 		ai.shiftRightClick(getCenter(bases[homeBaseIndex]));
 	}
+	
+	/**
+	 * Use after (minutes after) scoutForEnemy to get the enemy location.
+	 * @return the location of the enemy base
+	 */
+	private static Point getScoutingResults() {
+		enemyBaseIndex = Util.findEnemyBase(bases, ai.screenshot());
+		while(enemyBaseIndex < 0){
+			bases = ai.findAllBases();
+			enemyBaseIndex = Util.findEnemyBase(bases, ai.screenshot());
+		}
+		return getCenter(bases[enemyBaseIndex]);
+	}
 
+	/**
+	 * 
+	 * @param r a rectangle
+	 * @return the center point of r
+	 */
 	private static Point getCenter(Rectangle r){
 		return new Point(r.x + r.width/2, r.y + r.height/2);
 	}
 	
+	/**
+	 * Converts real time into game time as the game runs faster than real time
+	 * @param time the real time to convert
+	 * @return the game time
+	 */
 	private static double realToGameTime(double time) {
 		return time * GAME_SPEED;
 	}
 
+	/**
+	 * Returns the spot of a unit in a group of units when at least max(2,num)
+	 * units are selected
+	 * @param num the unit to get the point for
+	 * @return the point
+	 */
 	private static Point getArmyUnit(int num) {
 		num--;
 		return new Point(490 + 40 * (num % 8), 650 + 40 * (num / 8));
 	}
 
+	/**
+	 * Checks if the GameObject is relatively in the center of the screen
+	 * @param go the GameObject
+	 * @return true if it is near the center, false otherwise
+	 */
 	private static boolean notInCenter(GameObject go){
 		return go.getX() < width/2 - 150 ||
 				go.getX() + go.getWidth() > width/2 + 150 ||

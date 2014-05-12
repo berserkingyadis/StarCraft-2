@@ -281,7 +281,7 @@ public class SpeedlingRush {
 	private static void tryToMakeZergling(AI ai){
 		ai.selectGroup(1);
 		ai.sleep(0.3);
-		if(GameObject.hasLarva(ai.screenShot())){
+		if(GameObject.hasLarva(ai.screenshot())){
 			if(ai.getResourceAmount(Resource.MINERALS) >= 50){
 				if(ai.getResourceAmount(Resource.CURSUPPLY) != 
 						ai.getResourceAmount(Resource.MAXSUPPLY)){
@@ -295,10 +295,10 @@ public class SpeedlingRush {
 	private static void makeDrone(AI ai){
 		ai.selectGroup(1);
 		ai.sleep(0.1);
-		BufferedImage bi = ai.screenShot();
+		BufferedImage bi = ai.screenshot();
 		ai.sleep(0.3);
 		while(!GameObject.hasLarva(bi)){
-			bi = ai.screenShot();
+			bi = ai.screenshot();
 			ai.sleep(0.3);
 		}
 		ai.waitFor(min50);
@@ -314,10 +314,10 @@ public class SpeedlingRush {
 		while(ai.getResourceAmount(Resource.CURSUPPLY) == 
 				ai.getResourceAmount(Resource.MAXSUPPLY));
 		ai.waitFor(min50);
-		BufferedImage bi = ai.screenShot();
+		BufferedImage bi = ai.screenshot();
 		ai.sleep(0.3);
 		while(!GameObject.hasLarva(bi)){
-			bi = ai.screenShot();
+			bi = ai.screenshot();
 			ai.sleep(0.3);
 		}
 		ai.type(KeyEvent.VK_S);
@@ -328,7 +328,7 @@ public class SpeedlingRush {
 		ai.selectGroup(1);
 		ai.sleep(0.1);
 		ai.waitFor(min100);
-		while(!GameObject.hasLarva(ai.screenShot()));
+		while(!GameObject.hasLarva(ai.screenshot()));
 		ai.type(KeyEvent.VK_S);
 		ai.type(KeyEvent.VK_V);
 	}
@@ -336,7 +336,7 @@ public class SpeedlingRush {
 	private static void makeOverlordIfNeeded(AI ai){
 		ai.selectGroup(1);
 		ai.sleep(0.1);
-		if(GameObject.hasLarva(ai.screenShot())){
+		if(GameObject.hasLarva(ai.screenshot())){
 			if(ai.getResourceAmount(Resource.MINERALS) >= 100){
 				if(ai.getResourceAmount(Resource.CURSUPPLY) >= 
 						ai.getResourceAmount(Resource.MAXSUPPLY) - 1){
